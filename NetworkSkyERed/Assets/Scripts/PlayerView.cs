@@ -2,10 +2,25 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class GhostScript : MonoBehaviour
+public class PlayerView : MonoBehaviour
 {
-    Animator _anim;
-    CharacterController _ctrl;
+    int Hp
+    {
+        get => _hp;
+        set
+        {
+            _hp = value;
+            SceneReferenceHolder.Hp.SetHp(_hp);
+        }
+    }
+    int _hp;
+    
+    [SerializeField]
+    Animator _animator;
+    
+    [SerializeField]
+    CharacterController _characterController;
+    
     Vector3 _moveDirection = Vector3.zero;
 
     // Cache hash values
@@ -23,7 +38,6 @@ public class GhostScript : MonoBehaviour
     float _dissolveValue = 1;
     bool _dissolveFlg;
     const int MaxHp = 3;
-    int _hp = MaxHp;
     Text _hpText;
 
     // moving speed
@@ -32,10 +46,7 @@ public class GhostScript : MonoBehaviour
 
     void Start()
     {
-        _anim = GetComponent<Animator>();
-        _ctrl = GetComponent<CharacterController>();
-        _hpText = GameObject.Find("Canvas/HP").GetComponent<Text>();
-        _hpText.text = "HP " + _hp;
+        Hp = MaxHp;
     }
 
     void Update()
@@ -82,7 +93,7 @@ public class GhostScript : MonoBehaviour
         // Dissolve
         if(_hp <= 0 && !_dissolveFlg)
         {
-            _anim.CrossFade(_dissolveState, 0.1f, 0, 0);
+            _animator.CrossFade(_dissolveState, 0.1f, 0, 0);
             _dissolveFlg = true;
         }
         // processing at respawn
@@ -120,21 +131,21 @@ public class GhostScript : MonoBehaviour
         }
         
         // during attacking
-        if(_anim.GetCurrentAnimatorStateInfo(0).tagHash == _attackTag)
+        if(_animator.GetCurrentAnimatorStateInfo(0).tagHash == _attackTag)
         {
             _playerStatus[Attack] = true;
         }
-        else if(_anim.GetCurrentAnimatorStateInfo(0).tagHash != _attackTag)
+        else if(_animator.GetCurrentAnimatorStateInfo(0).tagHash != _attackTag)
         {
             _playerStatus[Attack] = false;
         }
         
         // during damaging
-        if(_anim.GetCurrentAnimatorStateInfo(0).fullPathHash == _surprisedState)
+        if(_animator.GetCurrentAnimatorStateInfo(0).fullPathHash == _surprisedState)
         {
             _playerStatus[Surprised] = true;
         }
-        else if(_anim.GetCurrentAnimatorStateInfo(0).fullPathHash != _surprisedState)
+        else if(_animator.GetCurrentAnimatorStateInfo(0).fullPathHash != _surprisedState)
         {
             _playerStatus[Surprised] = false;
         }
@@ -149,7 +160,7 @@ public class GhostScript : MonoBehaviour
 
         if(_dissolveValue <= 0)
         {
-            _ctrl.enabled = false;
+            _characterController.enabled = false;
         }
     }
     
@@ -158,7 +169,7 @@ public class GhostScript : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.A))
         {
-            _anim.CrossFade(_attackState,0.1f,0,0);
+            _animator.CrossFade(_attackState,0.1f,0,0);
         }
     }
     
@@ -167,7 +178,7 @@ public class GhostScript : MonoBehaviour
     //---------------------------------------------------------------------
     void Gravity ()
     {
-        if(_ctrl.enabled)
+        if(_characterController.enabled)
         {
             if(CheckGrounded())
             {
@@ -177,7 +188,7 @@ public class GhostScript : MonoBehaviour
                 }
             }
             _moveDirection.y -= 0.1f;
-            _ctrl.Move(_moveDirection * Time.deltaTime);
+            _characterController.Move(_moveDirection * Time.deltaTime);
         }
     }
     
@@ -186,7 +197,7 @@ public class GhostScript : MonoBehaviour
     //---------------------------------------------------------------------
     bool CheckGrounded()
     {
-        if (_ctrl.isGrounded && _ctrl.enabled)
+        if (_characterController.isGrounded && _characterController.enabled)
         {
             return true;
         }
@@ -201,7 +212,7 @@ public class GhostScript : MonoBehaviour
     void Move ()
     {
         // velocity
-        if(_anim.GetCurrentAnimatorStateInfo(0).fullPathHash == _moveState)
+        if(_animator.GetCurrentAnimatorStateInfo(0).fullPathHash == _moveState)
         {
             if (Input.GetKey(KeyCode.UpArrow) && !Input.GetKey(KeyCode.DownArrow) && !Input.GetKey(KeyCode.LeftArrow) && !Input.GetKey(KeyCode.RightArrow))
                 MOVE_Velocity(new Vector3(0, 0, -Speed), new Vector3(0, 180, 0));
@@ -218,7 +229,7 @@ public class GhostScript : MonoBehaviour
             || Input.GetKeyDown(KeyCode.DownArrow)
             || Input.GetKeyDown(KeyCode.LeftArrow)
             || Input.GetKeyDown(KeyCode.RightArrow))
-            _anim.CrossFade(_moveState, 0.1f, 0, 0);
+            _animator.CrossFade(_moveState, 0.1f, 0, 0);
         
         KeyUp();
     }
@@ -229,9 +240,9 @@ public class GhostScript : MonoBehaviour
     void MOVE_Velocity (Vector3 velocity, Vector3 rot)
     {
         _moveDirection = new Vector3 (velocity.x, _moveDirection.y, velocity.z);
-        if(_ctrl.enabled)
+        if(_characterController.enabled)
         {
-            _ctrl.Move(_moveDirection * Time.deltaTime);
+            _characterController.Move(_moveDirection * Time.deltaTime);
         }
         _moveDirection.x = 0;
         _moveDirection.z = 0;
@@ -247,28 +258,28 @@ public class GhostScript : MonoBehaviour
         {
             if(!Input.GetKey(KeyCode.DownArrow) && !Input.GetKey(KeyCode.LeftArrow) && !Input.GetKey(KeyCode.RightArrow))
             {
-                _anim.CrossFade(_idleState, 0.1f, 0, 0);
+                _animator.CrossFade(_idleState, 0.1f, 0, 0);
             }
         }
         else if (Input.GetKeyUp(KeyCode.DownArrow))
         {
             if(!Input.GetKey(KeyCode.UpArrow) && !Input.GetKey(KeyCode.LeftArrow) && !Input.GetKey(KeyCode.RightArrow))
             {
-                _anim.CrossFade(_idleState, 0.1f, 0, 0);
+                _animator.CrossFade(_idleState, 0.1f, 0, 0);
             }
         }
         else if (Input.GetKeyUp(KeyCode.LeftArrow))
         {
             if(!Input.GetKey(KeyCode.UpArrow) && !Input.GetKey(KeyCode.DownArrow) && !Input.GetKey(KeyCode.RightArrow))
             {
-                _anim.CrossFade(_idleState, 0.1f, 0, 0);
+                _animator.CrossFade(_idleState, 0.1f, 0, 0);
             }
         }
         else if (Input.GetKeyUp(KeyCode.RightArrow))
         {
             if(!Input.GetKey(KeyCode.UpArrow) && !Input.GetKey(KeyCode.DownArrow) && !Input.GetKey(KeyCode.LeftArrow))
             {
-                _anim.CrossFade(_idleState, 0.1f, 0, 0);
+                _animator.CrossFade(_idleState, 0.1f, 0, 0);
             }
         }
     }
@@ -281,9 +292,8 @@ public class GhostScript : MonoBehaviour
         // Damaged by outside field.
         if(Input.GetKeyUp(KeyCode.S))
         {
-            _anim.CrossFade(_surprisedState, 0.1f, 0, 0);
-            _hp--;
-            _hpText.text = "HP " + _hp.ToString();
+            _animator.CrossFade(_surprisedState, 0.1f, 0, 0);
+            Hp--;
         }
     }
     
@@ -295,10 +305,10 @@ public class GhostScript : MonoBehaviour
         // player HP
         _hp = MaxHp;
         
-        _ctrl.enabled = false;
+        _characterController.enabled = false;
         transform.position = Vector3.zero; // player position
         transform.rotation = Quaternion.Euler(Vector3.zero); // player facing
-        _ctrl.enabled = true;
+        _characterController.enabled = true;
         
         // reset Dissolve
         _dissolveValue = 1;
@@ -306,6 +316,6 @@ public class GhostScript : MonoBehaviour
             mesh.material.SetFloat(_dissolve, _dissolveValue);
 
         // reset animation
-        _anim.CrossFade(_idleState, 0.1f, 0, 0);
+        _animator.CrossFade(_idleState, 0.1f, 0, 0);
     }
 }

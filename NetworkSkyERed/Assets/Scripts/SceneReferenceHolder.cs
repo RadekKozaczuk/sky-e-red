@@ -2,13 +2,18 @@ using UnityEngine;
 
 public class SceneReferenceHolder : MonoBehaviour
 {
-    public static GhostScript Ghost;
+    public static PlayerView Player;
+    public static HpView Hp;
     
     [SerializeField]
-    GhostScript _audioContainer;
+    PlayerView _player;
+
+    [SerializeField]
+    HpView _hp;
     
     void Awake()
     {
-        Ghost = _audioContainer;
+        Player = _player;
+        Hp = _hp;
     }
 }
