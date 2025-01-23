@@ -12,7 +12,7 @@ class PlayerInputSystem : MonoBehaviour
 
     [SerializeField]
     InputActionAsset _inputActionAsset;
-    
+
     /// <summary>
     /// True if movement action is pressed down.
     /// </summary>
@@ -32,43 +32,31 @@ class PlayerInputSystem : MonoBehaviour
 
             _movementDown = true;
             Debug.Log("Movement Down");
+
+            SceneReferenceHolder.Player.MovementStarted();
         };
 
         _movementAction.canceled += _ =>
         {
             _movementDown = false;
             Debug.Log("Movement Up");
+            
+            SceneReferenceHolder.Player.MovementStopped();
         };
 
-    
         _attackAction = gameplay.FindAction(Attack);
-       
-        // player attack actions
-        _attackAction.performed += _ =>
-        {
-            Debug.Log("Attack Up");
-        };
 
-        _attackAction.canceled += _ =>
-        {
-            Debug.Log("Attack Down");
-        };
+        // player attack actions
+        _attackAction.performed += _ => { Debug.Log("Attack Up"); };
+
+        _attackAction.canceled += _ => { Debug.Log("Attack Down"); };
     }
 
     void Update()
     {
         if (_movementDown)
         {
-            Debug.Log($"Movement: {_movementAction.ReadValue<Vector2>()}");
+            SceneReferenceHolder.Player.SetMovementVector(_movementAction.ReadValue<Vector2>());
         }
-    }
-
-    internal static void CustomUpdate()
-    {
-        /*if (_movementDown && PresentationViewModel.CanMove)
-            PresentationViewModel.Movement(_movementAction.ReadValue<Vector2>());
-
-        if (_movingCamera)
-            PresentationViewModel.CameraMovement(_cameraMovementAction.ReadValue<Vector2>());*/
     }
 }
