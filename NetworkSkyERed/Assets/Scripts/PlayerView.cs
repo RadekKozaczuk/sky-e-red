@@ -30,6 +30,8 @@ public class PlayerView : MonoBehaviour
     static readonly int _attackState = Animator.StringToHash("Base Layer.attack_shift");
     static readonly int _dissolveState = Animator.StringToHash("Base Layer.dissolve");
     static readonly int _attackTag = Animator.StringToHash("Attack");
+    
+    static readonly int _dissolve = Shader.PropertyToID("_Dissolve");
 
     // dissolve
     [SerializeField]
@@ -51,14 +53,12 @@ public class PlayerView : MonoBehaviour
     const int AttackId = 2;
     const int Surprised = 3;
     readonly Dictionary<int, bool> _playerStatus = new() {{Dissolve, false}, {AttackId, false}, {Surprised, false}};
-    static readonly int _dissolve = Shader.PropertyToID("_Dissolve");
 
     void Start() => Hp = MaxHp;
 
     void Update()
     {
         Status();
-        Gravity();
 
         if (Input.GetKeyDown(KeyCode.Space))
             Respawn();
@@ -66,8 +66,6 @@ public class PlayerView : MonoBehaviour
         // this character status
         if (!_playerStatus.ContainsValue(true))
         {
-            if (Input.GetKeyDown(KeyCode.F))
-                Attack();
             Damage();
         }
         else if (_playerStatus.ContainsValue(true))
@@ -83,15 +81,6 @@ public class PlayerView : MonoBehaviour
             if (statusName == Dissolve)
             {
                 PlayerDissolve();
-            }
-            else if (statusName == AttackId)
-            {
-                if (Input.GetKeyDown(KeyCode.F))
-                    Attack();
-            }
-            else if (statusName == Surprised)
-            {
-                // nothing method
             }
         }
 
@@ -141,41 +130,11 @@ public class PlayerView : MonoBehaviour
             _characterController.enabled = false;
     }
 
-    // play a animation of Attack
+    // play the animation of Attack
     public void Attack() => _animator.CrossFade(_attackState, 0.1f, 0, 0);
-
-    //---------------------------------------------------------------------
-    // gravity for fall of this character
-    //---------------------------------------------------------------------
-    void Gravity()
-    {
-        if (_characterController.enabled)
-        {
-            if (CheckGrounded())
-                if (_moveDirection.y < -0.1f)
-                    _moveDirection.y = -0.1f;
-            _moveDirection.y -= 0.1f;
-            _characterController.Move(_moveDirection * Time.deltaTime);
-        }
-    }
-
-    //---------------------------------------------------------------------
-    // whether it is grounded
-    //---------------------------------------------------------------------
-    bool CheckGrounded()
-    {
-        if (_characterController.isGrounded && _characterController.enabled)
-            return true;
-
-        var ray = new Ray(transform.position + Vector3.up * 0.1f, Vector3.down);
-        float range = 0.2f;
-        return Physics.Raycast(ray, range);
-    }
 
     public void MovementStarted()
     {
-        _flag = true;
-        Debug.Log("MovementStarted");
         _animator.CrossFade(_moveState, 0.1f, 0, 0);
     }
     
@@ -186,26 +145,14 @@ public class PlayerView : MonoBehaviour
             _characterController.Move(_moveDirection * (Time.deltaTime * Speed));
         
         float angle = Mathf.Atan2(move.x, move.y) * Mathf.Rad2Deg;
-
-        if (_flag)
-        {
-            Debug.Log($"Move: {_moveDirection}, angle: {angle}");
-            _flag = false;
-        }
         transform.rotation = Quaternion.Euler(0, angle, 0);
 
         _moveDirection.x = 0;
         _moveDirection.z = 0;
-        
-        //Debug.Log("Movement: " + move);
     }
-
-    bool _flag = true;
     
     public void MovementStopped()
     {
-        _flag = true;
-        Debug.Log("MovementStopped");
         _animator.CrossFade(_idleState, 0.1f, 0, 0);
     }
 
@@ -231,7 +178,7 @@ public class PlayerView : MonoBehaviour
         Hp = MaxHp;
 
         _characterController.enabled = false;
-        transform.position = Vector3.zero;                   // player position
+        transform.position = new Vector3(0, -0.7f, 0);              // player position
         transform.rotation = Quaternion.Euler(new Vector3(0, -180, 0)); // player facing
         _characterController.enabled = true;
 
