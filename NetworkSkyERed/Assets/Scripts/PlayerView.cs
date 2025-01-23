@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class PlayerView : MonoBehaviour
 {
@@ -18,9 +17,6 @@ public class PlayerView : MonoBehaviour
     [SerializeField]
     Animator _animator;
 
-    [SerializeField]
-    CharacterController _characterController;
-
     Vector3 _moveDirection = Vector3.zero;
 
     // Cache hash values
@@ -35,12 +31,11 @@ public class PlayerView : MonoBehaviour
 
     // dissolve
     [SerializeField]
-    SkinnedMeshRenderer[] MeshR;
+    SkinnedMeshRenderer _skinnedMeshRenderer;
 
     float _dissolveValue = 1;
     bool _dissolveFlg;
     const int MaxHp = 3;
-    Text _hpText;
 
     // moving speed
     [SerializeField]
@@ -123,11 +118,7 @@ public class PlayerView : MonoBehaviour
     void PlayerDissolve()
     {
         _dissolveValue -= Time.deltaTime;
-        foreach (SkinnedMeshRenderer mesh in MeshR)
-            mesh.material.SetFloat(_dissolve, _dissolveValue);
-
-        if (_dissolveValue <= 0)
-            _characterController.enabled = false;
+        _skinnedMeshRenderer.material.SetFloat(_dissolve, _dissolveValue);
     }
 
     // play the animation of Attack
@@ -141,8 +132,8 @@ public class PlayerView : MonoBehaviour
     public void SetMovementVector(Vector2 move)
     {
         _moveDirection = new Vector3(move.x, 0f, move.y);
-        if (_characterController.enabled)
-            _characterController.Move(_moveDirection * (Time.deltaTime * Speed));
+
+        transform.position += _moveDirection * (Time.deltaTime * Speed);
         
         float angle = Mathf.Atan2(move.x, move.y) * Mathf.Rad2Deg;
         transform.rotation = Quaternion.Euler(0, angle, 0);
@@ -177,15 +168,12 @@ public class PlayerView : MonoBehaviour
         // player HP
         Hp = MaxHp;
 
-        _characterController.enabled = false;
         transform.position = new Vector3(0, -0.7f, 0);              // player position
         transform.rotation = Quaternion.Euler(new Vector3(0, -180, 0)); // player facing
-        _characterController.enabled = true;
 
         // reset Dissolve
         _dissolveValue = 1;
-        foreach (SkinnedMeshRenderer mesh in MeshR)
-            mesh.material.SetFloat(_dissolve, _dissolveValue);
+        _skinnedMeshRenderer.material.SetFloat(_dissolve, _dissolveValue);
 
         // reset animation
         _animator.CrossFade(_idleState, 0.1f, 0, 0);
