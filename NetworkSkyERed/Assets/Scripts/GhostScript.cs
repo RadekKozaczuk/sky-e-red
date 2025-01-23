@@ -19,6 +19,7 @@ public class GhostScript : MonoBehaviour
     // dissolve
     [SerializeField]
     SkinnedMeshRenderer[] MeshR;
+
     float _dissolveValue = 1;
     bool _dissolveFlg;
     const int MaxHp = 3;
@@ -138,6 +139,7 @@ public class GhostScript : MonoBehaviour
             _playerStatus[Surprised] = false;
         }
     }
+
     // dissolve shading
     void PlayerDissolve ()
     {
@@ -154,7 +156,7 @@ public class GhostScript : MonoBehaviour
     // play a animation of Attack
     void PlayerAttack ()
     {
-        if(Input.GetKeyDown(KeyCode.A))
+        if (Input.GetKeyDown(KeyCode.A))
         {
             _anim.CrossFade(_attackState,0.1f,0,0);
         }
@@ -202,23 +204,22 @@ public class GhostScript : MonoBehaviour
         if(_anim.GetCurrentAnimatorStateInfo(0).fullPathHash == _moveState)
         {
             if (Input.GetKey(KeyCode.UpArrow) && !Input.GetKey(KeyCode.DownArrow) && !Input.GetKey(KeyCode.LeftArrow) && !Input.GetKey(KeyCode.RightArrow))
-            {
                 MOVE_Velocity(new Vector3(0, 0, -Speed), new Vector3(0, 180, 0));
-            }
             else if (Input.GetKey(KeyCode.DownArrow) && !Input.GetKey(KeyCode.UpArrow) && !Input.GetKey(KeyCode.LeftArrow) && !Input.GetKey(KeyCode.RightArrow))
-            {
                 MOVE_Velocity(new Vector3(0, 0, Speed), new Vector3(0, 0, 0));
-            }
             else if (Input.GetKey(KeyCode.LeftArrow) && !Input.GetKey(KeyCode.UpArrow) && !Input.GetKey(KeyCode.DownArrow) && !Input.GetKey(KeyCode.RightArrow))
-            {
                 MOVE_Velocity(new Vector3(Speed, 0, 0), new Vector3(0, 90, 0));
-            }
             else if (Input.GetKey(KeyCode.RightArrow) && !Input.GetKey(KeyCode.UpArrow) && !Input.GetKey(KeyCode.DownArrow) && !Input.GetKey(KeyCode.LeftArrow))
-            {
                 MOVE_Velocity(new Vector3(-Speed, 0, 0), new Vector3(0, 270, 0));
-            }
         }
-        KeyDown();
+        
+        // key down
+        if (Input.GetKeyDown(KeyCode.UpArrow) 
+            || Input.GetKeyDown(KeyCode.DownArrow)
+            || Input.GetKeyDown(KeyCode.LeftArrow)
+            || Input.GetKeyDown(KeyCode.RightArrow))
+            _anim.CrossFade(_moveState, 0.1f, 0, 0);
+        
         KeyUp();
     }
 
@@ -235,28 +236,6 @@ public class GhostScript : MonoBehaviour
         _moveDirection.x = 0;
         _moveDirection.z = 0;
         transform.rotation = Quaternion.Euler(rot);
-    }
-    //---------------------------------------------------------------------
-    // whether arrow key is key down
-    //---------------------------------------------------------------------
-    void KeyDown ()
-    {
-        if (Input.GetKeyDown(KeyCode.UpArrow))
-        {
-            _anim.CrossFade(_moveState, 0.1f, 0, 0);
-        }
-        else if (Input.GetKeyDown(KeyCode.DownArrow))
-        {
-            _anim.CrossFade(_moveState, 0.1f, 0, 0);
-        }
-        else if (Input.GetKeyDown(KeyCode.LeftArrow))
-        {
-            _anim.CrossFade(_moveState, 0.1f, 0, 0);
-        }
-        else if (Input.GetKeyDown(KeyCode.RightArrow))
-        {
-            _anim.CrossFade(_moveState, 0.1f, 0, 0);
-        }
     }
     
     //---------------------------------------------------------------------
