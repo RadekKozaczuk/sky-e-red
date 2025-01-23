@@ -31,7 +31,7 @@ class PlayerInputSystem : MonoBehaviour
                 return;
 
             _movementDown = true;
-            Debug.Log("Movement Down");
+            //Debug.Log("Movement Down");
 
             SceneReferenceHolder.Player.MovementStarted();
         };
@@ -39,7 +39,7 @@ class PlayerInputSystem : MonoBehaviour
         _movementAction.canceled += _ =>
         {
             _movementDown = false;
-            Debug.Log("Movement Up");
+            //Debug.Log("Movement Up");
             
             SceneReferenceHolder.Player.MovementStopped();
         };
@@ -47,9 +47,15 @@ class PlayerInputSystem : MonoBehaviour
         _attackAction = gameplay.FindAction(Attack);
 
         // player attack actions
-        _attackAction.performed += _ => { Debug.Log("Attack Up"); };
+        _attackAction.performed += _ =>
+        {
+            //Debug.Log("Attack Up");
+        };
 
-        _attackAction.canceled += _ => { Debug.Log("Attack Down"); };
+        _attackAction.canceled += _ =>
+        {
+            //Debug.Log("Attack Down");
+        };
     }
 
     void Update()

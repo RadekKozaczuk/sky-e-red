@@ -66,8 +66,7 @@ public class PlayerView : MonoBehaviour
         // this character status
         if (!_playerStatus.ContainsValue(true))
         {
-            Move();
-            if (Input.GetKeyDown(KeyCode.A))
+            if (Input.GetKeyDown(KeyCode.F))
                 Attack();
             Damage();
         }
@@ -87,7 +86,7 @@ public class PlayerView : MonoBehaviour
             }
             else if (statusName == AttackId)
             {
-                if (Input.GetKeyDown(KeyCode.A))
+                if (Input.GetKeyDown(KeyCode.F))
                     Attack();
             }
             else if (statusName == Surprised)
@@ -173,63 +172,39 @@ public class PlayerView : MonoBehaviour
         return Physics.Raycast(ray, range);
     }
 
-    //---------------------------------------------------------------------
-    // for slime moving
-    //---------------------------------------------------------------------
-    void Move()
-    {
-        // velocity
-        if (_animator.GetCurrentAnimatorStateInfo(0).fullPathHash == _moveState)
-        {
-            if (Input.GetKey(KeyCode.UpArrow)
-                && !Input.GetKey(KeyCode.DownArrow)
-                && !Input.GetKey(KeyCode.LeftArrow)
-                && !Input.GetKey(KeyCode.RightArrow))
-                MOVE_Velocity(new Vector3(0, 0, -Speed), new Vector3(0, 180, 0));
-            else if (Input.GetKey(KeyCode.DownArrow)
-                     && !Input.GetKey(KeyCode.UpArrow)
-                     && !Input.GetKey(KeyCode.LeftArrow)
-                     && !Input.GetKey(KeyCode.RightArrow))
-                MOVE_Velocity(new Vector3(0, 0, Speed), new Vector3(0, 0, 0));
-            else if (Input.GetKey(KeyCode.LeftArrow)
-                     && !Input.GetKey(KeyCode.UpArrow)
-                     && !Input.GetKey(KeyCode.DownArrow)
-                     && !Input.GetKey(KeyCode.RightArrow))
-                MOVE_Velocity(new Vector3(Speed, 0, 0), new Vector3(0, 90, 0));
-            else if (Input.GetKey(KeyCode.RightArrow)
-                     && !Input.GetKey(KeyCode.UpArrow)
-                     && !Input.GetKey(KeyCode.DownArrow)
-                     && !Input.GetKey(KeyCode.LeftArrow))
-                MOVE_Velocity(new Vector3(-Speed, 0, 0), new Vector3(0, 270, 0));
-        }
-    }
-
-    //---------------------------------------------------------------------
-    // value for moving
-    //---------------------------------------------------------------------
-    void MOVE_Velocity(Vector3 velocity, Vector3 rot)
-    {
-        _moveDirection = new Vector3(velocity.x, _moveDirection.y, velocity.z);
-        if (_characterController.enabled)
-            _characterController.Move(_moveDirection * Time.deltaTime);
-        _moveDirection.x = 0;
-        _moveDirection.z = 0;
-        transform.rotation = Quaternion.Euler(rot);
-    }
-
     public void MovementStarted()
     {
+        _flag = true;
         Debug.Log("MovementStarted");
         _animator.CrossFade(_moveState, 0.1f, 0, 0);
     }
     
     public void SetMovementVector(Vector2 move)
     {
-        Debug.Log("Movement: " + move);
+        _moveDirection = new Vector3(move.x, 0f, move.y);
+        if (_characterController.enabled)
+            _characterController.Move(_moveDirection * (Time.deltaTime * Speed));
+        
+        float angle = Mathf.Atan2(move.x, move.y) * Mathf.Rad2Deg;
+
+        if (_flag)
+        {
+            Debug.Log($"Move: {_moveDirection}, angle: {angle}");
+            _flag = false;
+        }
+        transform.rotation = Quaternion.Euler(0, angle, 0);
+
+        _moveDirection.x = 0;
+        _moveDirection.z = 0;
+        
+        //Debug.Log("Movement: " + move);
     }
 
+    bool _flag = true;
+    
     public void MovementStopped()
     {
+        _flag = true;
         Debug.Log("MovementStopped");
         _animator.CrossFade(_idleState, 0.1f, 0, 0);
     }
@@ -240,7 +215,7 @@ public class PlayerView : MonoBehaviour
     void Damage()
     {
         // Damaged by outside field.
-        if (Input.GetKeyUp(KeyCode.S))
+        if (Input.GetKeyUp(KeyCode.G))
         {
             _animator.CrossFade(_surprisedState, 0.1f, 0, 0);
             Hp--;
@@ -253,11 +228,11 @@ public class PlayerView : MonoBehaviour
     void Respawn()
     {
         // player HP
-        _hp = MaxHp;
+        Hp = MaxHp;
 
         _characterController.enabled = false;
         transform.position = Vector3.zero;                   // player position
-        transform.rotation = Quaternion.Euler(Vector3.zero); // player facing
+        transform.rotation = Quaternion.Euler(new Vector3(0, -180, 0)); // player facing
         _characterController.enabled = true;
 
         // reset Dissolve
