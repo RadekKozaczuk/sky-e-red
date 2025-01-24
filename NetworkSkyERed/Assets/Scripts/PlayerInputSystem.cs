@@ -1,3 +1,4 @@
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -32,13 +33,13 @@ class PlayerInputSystem : MonoBehaviour
 
             _movementDown = true;
 
-            SceneReferenceHolder.Player.MovementStarted();
+            //SceneReferenceHolder.Character.MovementStarted();
         };
 
         _movementAction.canceled += _ =>
         {
             _movementDown = false;
-            SceneReferenceHolder.Player.MovementStopped();
+            //SceneReferenceHolder.Character.MovementStopped();
         };
 
         _attackAction = gameplay.FindAction(Attack);
@@ -46,7 +47,8 @@ class PlayerInputSystem : MonoBehaviour
         // player attack actions
         _attackAction.performed += _ =>
         {
-            SceneReferenceHolder.Player.Attack();
+            Debug.Log("AttackRPC Called");
+            GameController.Singleton.Attack();
         };
     }
 
@@ -54,7 +56,8 @@ class PlayerInputSystem : MonoBehaviour
     {
         if (_movementDown)
         {
-            SceneReferenceHolder.Player.SetMovementVector(_movementAction.ReadValue<Vector2>());
+            var move = _movementAction.ReadValue<Vector2>();
+            GameController.Singleton.Move(move);
         }
     }
 }

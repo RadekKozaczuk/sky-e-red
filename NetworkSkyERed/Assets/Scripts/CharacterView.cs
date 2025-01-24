@@ -1,8 +1,11 @@
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 
-public class PlayerView : MonoBehaviour
+public class CharacterView : NetworkBehaviour
 {
+    public NetworkVariable<byte> NetworkHp = new(5);
+    
     int Hp
     {
         get => _hp;
@@ -35,33 +38,39 @@ public class PlayerView : MonoBehaviour
 
     float _dissolveValue = 1;
     bool _dissolveFlg;
-    const int MaxHp = 3;
+    
+    [SerializeField]
+    int MaxHp = 3;
 
     // moving speed
     [SerializeField]
     float Speed = 4;
 
-    //---------------------------------------------------------------------
-    // character status
-    //---------------------------------------------------------------------
     const int Dissolve = 1;
     const int AttackId = 2;
     const int Surprised = 3;
     readonly Dictionary<int, bool> _playerStatus = new() {{Dissolve, false}, {AttackId, false}, {Surprised, false}};
 
+    // order of execution
+    // when dynamically spawned: Awake -> OnNetworkSpawn -> Start
+    // when in-Scene placed:     Awake -> Start -> OnNetworkSpawn
+    
     void Start() => Hp = MaxHp;
+
+    public override void OnNetworkSpawn()
+    {
+        base.OnNetworkSpawn();
+        Hp = MaxHp;
+    }
 
     void Update()
     {
         Status();
 
-        if (Input.GetKeyDown(KeyCode.Space))
-            Respawn();
-
         // this character status
         if (!_playerStatus.ContainsValue(true))
         {
-            Damage();
+            //Damage();
         }
         else if (_playerStatus.ContainsValue(true))
         {
@@ -147,22 +156,16 @@ public class PlayerView : MonoBehaviour
         _animator.CrossFade(_idleState, 0.1f, 0, 0);
     }
 
-    //---------------------------------------------------------------------
-    // damage
-    //---------------------------------------------------------------------
     void Damage()
     {
         // Damaged by outside field.
-        if (Input.GetKeyUp(KeyCode.G))
-        {
+        //if (Input.GetKeyUp(KeyCode.G))
+        //{
             _animator.CrossFade(_surprisedState, 0.1f, 0, 0);
             Hp--;
-        }
+       // }
     }
 
-    //---------------------------------------------------------------------
-    // respawn
-    //---------------------------------------------------------------------
     void Respawn()
     {
         // player HP
