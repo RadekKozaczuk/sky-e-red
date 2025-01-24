@@ -1,17 +1,19 @@
 ﻿using System.Collections.Generic;
-using UnityEngine;
 using UnityEngine.Assertions;
 
-public class PlayerData
+public class PlayerModel
 {
     public Character CurrentCharacter => _characters[_currentCharacterIndex];
+    public int Hp => _hpValues[_currentCharacterIndex];
 
     readonly List<Character> _characters;
+    readonly List<int> _hpValues;
     int _currentCharacterIndex;
 
-    public PlayerData(List<Character> characters)
+    public PlayerModel(List<Character> characters)
     {
         _characters = characters;
+        _hpValues = new List<int>(characters.Count);
         _currentCharacterIndex = 0;
     }
 
@@ -25,19 +27,6 @@ public class PlayerData
             _currentCharacterIndex++;
     }
     
-    public void SetMovementVector(Vector2 move)
-    {
-        /*_moveDirection = new Vector3(move.x, 0f, move.y);
-
-        transform.position += _moveDirection * (Time.deltaTime * Speed);
-        
-        float angle = Mathf.Atan2(move.x, move.y) * Mathf.Rad2Deg;
-        transform.rotation = Quaternion.Euler(0, angle, 0);
-
-        _moveDirection.x = 0;
-        _moveDirection.z = 0;*/
-    }
-
     public void Attack()
     {
         

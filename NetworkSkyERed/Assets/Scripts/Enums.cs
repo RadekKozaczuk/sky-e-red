@@ -3,3 +3,10 @@
     FirstPlayer,
     SecondPlayer
 }
+
+public enum Character
+{
+    Bluey,
+    Greeny,
+    Pinky
+}

@@ -1,7 +1,6 @@
-﻿namespace DefaultNamespace
+﻿using UnityEngine;
+
+public class GameData : ScriptableObject
 {
-    public class GameData
-    {
-        
-    }
+    
 }

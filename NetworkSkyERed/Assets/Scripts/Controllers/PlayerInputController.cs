@@ -46,7 +46,6 @@ class PlayerInputController : MonoBehaviour
         // player attack actions
         _attackAction.performed += _ =>
         {
-            Debug.Log("AttackRPC Called");
             GameController.Singleton.Attack();
         };
     }

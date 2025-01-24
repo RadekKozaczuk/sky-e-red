@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -11,7 +12,19 @@ public class GameController : NetworkBehaviour
     CharacterView[] _characterPrefabs;
 
     // runtime
-    readonly Dictionary<ulong, CharacterView> _characters = new();
+    readonly Dictionary<PlayerId, PlayerModel> _playersModels = new();
+
+    /// <summary>
+    /// Maps clientId to PlayerId.
+    /// ClientId do not recycle instantaneously.
+    /// </summary>
+    readonly Dictionary<ulong, PlayerId> _idToPlayerId = new();
+    
+    /// <summary>
+    /// Maps clientId to PlayerId.
+    /// ClientId do not recycle instantaneously.
+    /// </summary>
+    readonly Dictionary<PlayerId, CharacterView> _characterViews = new();
 
     // configuration
     [SerializeField]
@@ -34,60 +47,81 @@ public class GameController : NetworkBehaviour
             if (!NetworkManager.Singleton.IsHost)
                 return;
             
+            PlayerId playerId = clientId == 0 ? PlayerId.FirstPlayer : PlayerId.SecondPlayer;
+            _idToPlayerId.Add(clientId, playerId);
+
+            List<Character> list = playerId == PlayerId.FirstPlayer ? _hostStartCharacters.ToList() : _clientStartCharacters.ToList();
+            var player = new PlayerModel(list);
+            _playersModels.Add(playerId, player);
+            
             // initially always spawn the first character
-            CharacterView player = Instantiate(_characterPrefabs[0], new Vector3(0, -0.7f, 0), Quaternion.identity);
+            CharacterView character = Instantiate(_characterPrefabs[(int)player.CurrentCharacter], new Vector3(0, -0.7f, 0), Quaternion.identity);
 
             // spawn over the network
-            player.NetworkObject.SpawnWithOwnership(clientId);
+            character.NetworkObject.SpawnWithOwnership(clientId);
             
-            _characters.Add((byte)clientId, player);
-            
-            Debug.Log($"Spawned player with id: {clientId}");
+            _characterViews.Add(playerId, character);
         };   
     }
 
     public void Move(Vector2 move)
     {
         ulong id = NetworkManager.Singleton.LocalClientId;
-        
+
         if (NetworkManager.Singleton.IsHost)
-            _characters[id].SetMovementVector(move);
+        {
+            PlayerId playerId = _idToPlayerId[id];
+            _characterViews[playerId].SetMovementVector(move);
+        }
         else
             MoveRpc((byte)id, move);
     }
     
     public void Attack()
     {
+        ulong id = NetworkManager.Singleton.LocalClientId;
+
         if (NetworkManager.Singleton.IsHost)
-            ;
+        {
+            PlayerId playerId = _idToPlayerId[id];
+            _playersModels[playerId].Attack();
+        }
         else
-            AttackRpc((byte)NetworkManager.Singleton.LocalClientId);
+            AttackRpc((byte)id);
     }
     
     public void ChangeCharacter(byte clientId)
     {
+        ulong id = NetworkManager.Singleton.LocalClientId;
+
         if (NetworkManager.Singleton.IsHost)
-            ;
+        {
+            PlayerId playerId = _idToPlayerId[id];
+            _playersModels[playerId].ChangeCharacter();
+        }
         else
-            AttackRpc((byte)NetworkManager.Singleton.LocalClientId);
+            ChangeCharacterRpc((byte)id);
     }
     
     [Rpc(SendTo.Server)]
+    // ReSharper disable once MemberCanBeMadeStatic.Local
     void MoveRpc(byte clientId, Vector2 move)
     {
-        _characters[clientId].SetMovementVector(move);
+        PlayerId playerId = _idToPlayerId[clientId];
+        _characterViews[playerId].SetMovementVector(move);
         
         Debug.Log($"MoveRpc Body executed, clientId: {clientId}");
     }
     
-    // todo: does not work
     [Rpc(SendTo.Server)]
+    // ReSharper disable once MemberCanBeMadeStatic.Local
     void AttackRpc(byte clientId)
     {
         Debug.Log($"AttackRPC Body executed, clientId: {clientId}");
     }
 
     [Rpc(SendTo.Server)]
+    // ReSharper disable once MemberCanBeMadeStatic.Local
     void ChangeCharacterRpc(byte clientId)
     {
         
