@@ -158,12 +158,8 @@ public class CharacterView : NetworkBehaviour
 
     void Damage()
     {
-        // Damaged by outside field.
-        //if (Input.GetKeyUp(KeyCode.G))
-        //{
-            _animator.CrossFade(_surprisedState, 0.1f, 0, 0);
-            Hp--;
-       // }
+        _animator.CrossFade(_surprisedState, 0.1f, 0, 0);
+        Hp--;
     }
 
     void Respawn()

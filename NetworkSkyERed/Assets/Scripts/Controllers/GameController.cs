@@ -6,10 +6,19 @@ public class GameController : NetworkBehaviour
 {
     public static GameController Singleton;
     
+    // prefabs
     [SerializeField]
     CharacterView[] _characterPrefabs;
 
+    // runtime
     readonly Dictionary<ulong, CharacterView> _characters = new();
+
+    // configuration
+    [SerializeField]
+    Character[] _hostStartCharacters;
+    
+    [SerializeField]
+    Character[] _clientStartCharacters;
     
     void Awake()
     {
@@ -21,21 +30,12 @@ public class GameController : NetworkBehaviour
     {
         NetworkManager.Singleton.OnClientConnectedCallback += clientId =>
         {
-            //_joinedPlayers++;
-            // ignore self connection
-            //if (clientId == 0)
-            //    return;
-
             // only host can spawn
             if (!NetworkManager.Singleton.IsHost)
                 return;
             
             // initially always spawn the first character
-            CharacterView player = Instantiate(_characterPrefabs[0], new Vector3(0, -0.7f, 0), Quaternion.identity,
-                                               SceneReferenceHolder.CharacterContainer);
-
-            //PresentationData.NetworkPlayers[(int)PlayerId.Player2] = player;
-            //SetPlayerOutfit(player);
+            CharacterView player = Instantiate(_characterPrefabs[0], new Vector3(0, -0.7f, 0), Quaternion.identity);
 
             // spawn over the network
             player.NetworkObject.SpawnWithOwnership(clientId);

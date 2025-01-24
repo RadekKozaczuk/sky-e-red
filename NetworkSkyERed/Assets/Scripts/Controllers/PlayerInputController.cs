@@ -1,8 +1,7 @@
-using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-class PlayerInputSystem : MonoBehaviour
+class PlayerInputController : MonoBehaviour
 {
     const string PlayerActionMap = "Player";
     const string Move = "Move";
