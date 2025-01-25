@@ -3,18 +3,21 @@
 [CreateAssetMenu(fileName = "CharacterData", menuName = "Data/CharacterData")]
 public class CharacterData : ScriptableObject
 {
-    [SerializeField]
     public CharacterView Prefab;
+
+    public Character Character;
     
     [Min(1)]
-    [SerializeField]
     public int MaxHp = 3;
 
     [Min(1)]
-    [SerializeField]
     public float Speed = 4;
     
     [Min(1)]
-    [SerializeField]
-    public int Damage = 4;   
+    public int Damage = 4;
+
+    /// <summary>
+    /// In seconds.
+    /// </summary>
+    public float DissolveAnimationLength;
 }

@@ -1,10 +1,8 @@
 ﻿using UnityEngine;
 
+[CreateAssetMenu(fileName = "GameData", menuName = "Data/GameData")]
 public class GameData : ScriptableObject
 {
-    [SerializeField]
-    Character[] _hostStartCharacters;
-    
-    [SerializeField]
-    Character[] _clientStartCharacters;
+    public Character[] FirstPlayerStartCharacters;
+    public Character[] SecondPlayerStartCharacters;
 }

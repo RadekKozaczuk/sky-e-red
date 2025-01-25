@@ -29,10 +29,7 @@ public class GameController : NetworkBehaviour
 
     // configuration
     [SerializeField]
-    Character[] _hostStartCharacters;
-    
-    [SerializeField]
-    Character[] _clientStartCharacters;
+    GameData _gameData;
 
     [SerializeField]
     CharacterData[] _characterData;
@@ -57,7 +54,10 @@ public class GameController : NetworkBehaviour
 
             _idToPlayerId.Add(clientId, playerId);
 
-            List<Character> list = playerId == PlayerId.FirstPlayer ? _hostStartCharacters.ToList() : _clientStartCharacters.ToList();
+            List<Character> list = playerId == PlayerId.FirstPlayer 
+                ? _gameData.FirstPlayerStartCharacters.ToList() 
+                : _gameData.SecondPlayerStartCharacters.ToList();
+
             var player = new PlayerModel(list);
             _playersModels.Add(playerId, player);
             _deadCharacters.Add(playerId, new List<CharacterView>());
@@ -124,9 +124,14 @@ public class GameController : NetworkBehaviour
         int index = list.FindIndex(c => c.Id == characterId);
         uint tickRate = NetworkManager.Singleton.NetworkTickSystem.TickRate;
         
-        // todo: get dissolve animation length;
-
+        CharacterView view = list[index];
+        //float defer = _characterData[(int)view.Character].DissolveAnimationLength * tickRate;
+        //list[index].NetworkObject.DeferredDespawnTick = (int)defer;
         list[index].NetworkObject.Despawn();
+        //list[index].NetworkObject.DeferDespawn((int)defer);
+        
+        // todo: animation should start with delay and fast forward
+        
         list.RemoveAt(index);
     }
     

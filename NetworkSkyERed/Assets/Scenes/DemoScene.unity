@@ -461,7 +461,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 30.5
+  m_fontSize: 28
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -830,7 +830,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 18.6
+  m_fontSize: 18
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -1732,12 +1732,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
-  _characterPrefabs:
-  - {fileID: 266661204646212183, guid: 71fed29e0b5668b4a9e99fe07c77e6ad, type: 3}
-  - {fileID: 266661204646212183, guid: fd03ae02ff4573c459a85d733c55663e, type: 3}
-  - {fileID: 266661204646212183, guid: 4d26db7fa4a9a14488bf1009e7d4bce9, type: 3}
-  _hostStartCharacters: 000000000100000002000000
-  _clientStartCharacters: 0200000001000000
+  _gameData: {fileID: 11400000, guid: 1e85ea27f3c74f74ead37914c72a5257, type: 2}
   _characterData:
   - {fileID: 11400000, guid: 37f3154e31da6f84586f4d6c98c6ca8d, type: 2}
   - {fileID: 11400000, guid: 723b674825d118f41bf7ef6c5a9d8f57, type: 2}
