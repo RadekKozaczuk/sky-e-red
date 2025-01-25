@@ -4,9 +4,8 @@ using UnityEngine.Rendering;
 
 public class CharacterView : NetworkBehaviour
 {
-    public int Id => _id;
-    int _id;
-    public PlayerId PlayerId;
+    public int Id { get; private set; }
+    public PlayerId PlayerId { get; private set; }
 
     static int _idCounter;
     
@@ -43,13 +42,6 @@ public class CharacterView : NetworkBehaviour
     float _dissolveValue = 1;
     bool _dissolveFlg;
     
-    [SerializeField]
-    int MaxHp = 3;
-
-    // moving speed
-    [SerializeField]
-    float Speed = 4;
-
     /*const int Dissolve = 1;
     const int AttackId = 2;
     const int Surprised = 3;
@@ -60,18 +52,20 @@ public class CharacterView : NetworkBehaviour
     // order of execution
     // when dynamically spawned: Awake -> OnNetworkSpawn -> Start
     // when in-Scene placed:     Awake -> Start -> OnNetworkSpawn
+
+    float _speed;
+    
+    public void Initialize(PlayerId playerId, CharacterData data)
+    {
+        PlayerId = playerId;
+        Hp = data.MaxHp;
+        _speed = data.Speed;
+    }
     
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
-        _id = _idCounter++;
-    }
-
-    public override void OnNetworkDespawn()
-    {
-        base.OnNetworkDespawn();
-
-        //Debug.Log("OnNetworkDespawn, Id: " + _id);
+        Id = _idCounter++;
     }
 
     void Update()
@@ -81,30 +75,6 @@ public class CharacterView : NetworkBehaviour
             _dissolveValue -= Time.deltaTime;
             _skinnedMeshRenderer.material.SetFloat(_dissolve, _dissolveValue);
         }
-
-        Status();
-    }
-
-    //------------------------------
-    void Status()
-    {
-        // during dissolve
-        /*if (_dissolveFlg /*&& _hp <= 0#1#)
-            _playerStatus[Dissolve] = true;
-        else if (!_dissolveFlg)
-            _playerStatus[Dissolve] = false;
-
-        // during attacking
-        if (_animator.GetCurrentAnimatorStateInfo(0).tagHash == _attackTag)
-            _playerStatus[AttackId] = true;
-        else if (_animator.GetCurrentAnimatorStateInfo(0).tagHash != _attackTag)
-            _playerStatus[AttackId] = false;
-
-        // during damaging
-        if (_animator.GetCurrentAnimatorStateInfo(0).fullPathHash == _surprisedState)
-            _playerStatus[Surprised] = true;
-        else if (_animator.GetCurrentAnimatorStateInfo(0).fullPathHash != _surprisedState)
-            _playerStatus[Surprised] = false;*/
     }
 
     /// <summary>
@@ -113,8 +83,6 @@ public class CharacterView : NetworkBehaviour
     /// </summary>
     public void Dissolve()
     {
-        /*_dissolveFlg = true;
-        _skinnedMeshRenderer.shadowCastingMode = ShadowCastingMode.Off;*/
         _animator.SetBool(_dissolve1, true);
     }
 
@@ -156,7 +124,7 @@ public class CharacterView : NetworkBehaviour
         }
         
         _move = new Vector3(move.x, 0f, move.y);
-        transform.position += _move * (Time.deltaTime * Speed);
+        transform.position += _move * (Time.deltaTime * _speed);
 
         if (movementStopped)
             return;
@@ -171,7 +139,7 @@ public class CharacterView : NetworkBehaviour
         Hp--;
     }
 
-    void Respawn()
+    /*void Respawn()
     {
         // player HP
         Hp = MaxHp;
@@ -185,5 +153,5 @@ public class CharacterView : NetworkBehaviour
 
         // reset animation
         _animator.CrossFade(_idleState, 0.1f, 0, 0);
-    }
+    }*/
 }

@@ -7,10 +7,6 @@ using UnityEngine;
 public class GameController : NetworkBehaviour
 {
     public static GameController Singleton;
-    
-    // prefabs
-    [SerializeField]
-    CharacterView[] _characterPrefabs;
 
     // runtime
     readonly Dictionary<PlayerId, PlayerModel> _playersModels = new();
@@ -37,6 +33,9 @@ public class GameController : NetworkBehaviour
     
     [SerializeField]
     Character[] _clientStartCharacters;
+
+    [SerializeField]
+    CharacterData[] _characterData;
     
     void Awake()
     {
@@ -64,13 +63,14 @@ public class GameController : NetworkBehaviour
             _deadCharacters.Add(playerId, new List<CharacterView>());
             
             // initially always spawn the first character
+            CharacterData data = _characterData[(int)player.CurrentCharacter];
             CharacterView character = Instantiate(
-                _characterPrefabs[(int)player.CurrentCharacter],
+                data.Prefab,
                 new Vector3(0, -0.7f, 0),
                 Quaternion.Euler(0, 180, 0));
 
-            character.PlayerId = playerId;
-
+            character.Initialize(playerId, data);
+            
             // spawn over the network
             character.NetworkObject.SpawnWithOwnership(NetworkManager.Singleton.LocalClient.ClientId);
 
@@ -165,9 +165,10 @@ public class GameController : NetworkBehaviour
             
         // initially always spawn the first character
         Transform t = previous.transform;
-        CharacterView nextCharacter = Instantiate(_characterPrefabs[(int)model.CurrentCharacter], t.position, t.rotation);
-        nextCharacter.PlayerId = playerId;
-
+        CharacterData data = _characterData[(int)model.CurrentCharacter];
+        CharacterView nextCharacter = Instantiate(data.Prefab, t.position, t.rotation);
+        nextCharacter.Initialize(playerId, data);
+        
         // spawn over the network
         nextCharacter.NetworkObject.SpawnWithOwnership(NetworkManager.Singleton.LocalClient.ClientId);
         _characters[(int)playerId] = nextCharacter;
