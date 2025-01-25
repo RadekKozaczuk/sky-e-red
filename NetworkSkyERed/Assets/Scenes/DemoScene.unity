@@ -801,16 +801,9 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Arrow Key = move
-
-    F Key = attack
-
-    G Key = surprised
-
-    HP 0
-    = dissolve
-
-    Space Key = respawn'
+  m_text: "WSAD/Arrows = move\nF = attack\nE = change character\n\nCharacters have
+    different stats. \nWhen character's hp goes to zero it dies. Losing all characters
+    means game over."
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -837,7 +830,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 47.2
+  m_fontSize: 29.45
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1

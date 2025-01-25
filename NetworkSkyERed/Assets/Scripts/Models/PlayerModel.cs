@@ -3,8 +3,14 @@ using UnityEngine.Assertions;
 
 public class PlayerModel
 {
+    public bool CanChangeCharacter => true; // todo: use later
+    
     public Character CurrentCharacter => _characters[_currentCharacterIndex];
-    public int Hp => _hpValues[_currentCharacterIndex];
+    
+    /// <summary>
+    /// Hp of the currently selected character.
+    /// </summary>
+    public int CurrentHp => _hpValues[_currentCharacterIndex];
 
     readonly List<Character> _characters;
     readonly List<int> _hpValues;
@@ -26,14 +32,12 @@ public class PlayerModel
         else
             _currentCharacterIndex++;
     }
-    
-    public void Attack()
-    {
-        
-    }
-    
+
     public void ChangeCharacter()
     {
-        
+        if (_currentCharacterIndex == _characters.Count - 1)
+            _currentCharacterIndex = 0;
+        else
+            _currentCharacterIndex++;
     }
 }

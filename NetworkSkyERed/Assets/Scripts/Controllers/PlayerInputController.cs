@@ -6,9 +6,11 @@ class PlayerInputController : MonoBehaviour
     const string PlayerActionMap = "Player";
     const string Move = "Move";
     const string Attack = "Attack";
+    const string ChangeCharacter = "ChangeCharacter";
 
     InputAction _movementAction;
     InputAction _attackAction;
+    InputAction _changeCharacter;
 
     [SerializeField]
     InputActionAsset _inputActionAsset;
@@ -32,13 +34,12 @@ class PlayerInputController : MonoBehaviour
 
             _movementDown = true;
 
-            //SceneReferenceHolder.Character.MovementStarted();
         };
 
         _movementAction.canceled += _ =>
         {
             _movementDown = false;
-            //SceneReferenceHolder.Character.MovementStopped();
+            GameController.Singleton.Move(Vector2.zero);
         };
 
         _attackAction = gameplay.FindAction(Attack);
@@ -46,7 +47,17 @@ class PlayerInputController : MonoBehaviour
         // player attack actions
         _attackAction.performed += _ =>
         {
+            Debug.Log("Attack");
             GameController.Singleton.Attack();
+        };
+        
+        _changeCharacter = gameplay.FindAction(ChangeCharacter);
+
+        // player attack actions
+        _changeCharacter.performed += _ =>
+        {
+            Debug.Log("Change player");
+            GameController.Singleton.ChangeCharacter();
         };
     }
 

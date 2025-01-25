@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 public class CharacterView : NetworkBehaviour
 {
@@ -20,7 +21,7 @@ public class CharacterView : NetworkBehaviour
     [SerializeField]
     Animator _animator;
 
-    Vector3 _moveDirection = Vector3.zero;
+    Vector3 _move = Vector3.zero;
 
     // Cache hash values
     static readonly int _idleState = Animator.StringToHash("Base Layer.idle");
@@ -65,10 +66,19 @@ public class CharacterView : NetworkBehaviour
 
     void Update()
     {
+        if (_dissolveFlg)
+        {
+            _dissolveValue -= Time.deltaTime;
+            _skinnedMeshRenderer.material.SetFloat(_dissolve, _dissolveValue);
+        }
+
+
         Status();
 
+        
+        
         // this character status
-        if (!_playerStatus.ContainsValue(true))
+        /*if (!_playerStatus.ContainsValue(true))
         {
             //Damage();
         }
@@ -98,7 +108,7 @@ public class CharacterView : NetworkBehaviour
         else if (_hp == MaxHp && _dissolveFlg)
         {
             _dissolveFlg = false;
-        }
+        }*/
     }
 
     //------------------------------
@@ -123,37 +133,58 @@ public class CharacterView : NetworkBehaviour
             _playerStatus[Surprised] = false;
     }
 
-    // dissolve shading
-    void PlayerDissolve()
+    /// <summary>
+    /// Starts dissolving animation.
+    /// Disables shadows.
+    /// </summary>
+    public void PlayerDissolve()
     {
-        _dissolveValue -= Time.deltaTime;
-        _skinnedMeshRenderer.material.SetFloat(_dissolve, _dissolveValue);
+        _dissolveFlg = true;
+        _skinnedMeshRenderer.shadowCastingMode = ShadowCastingMode.Off;
+        Debug.Log("Disolve started");
+        /*_dissolveValue -= Time.deltaTime;
+        _skinnedMeshRenderer.material.SetFloat(_dissolve, _dissolveValue);*/
     }
 
     // play the animation of Attack
     public void Attack() => _animator.CrossFade(_attackState, 0.1f, 0, 0);
 
-    public void MovementStarted()
+    /// <summary>
+    /// Last change of the movement vector.
+    /// Meaning that if you want the character to stop you have to send <see cref="Vector2.zero"/>.
+    /// </summary>
+    public void Move(Vector2 move)
     {
-        _animator.CrossFade(_moveState, 0.1f, 0, 0);
-    }
-    
-    public void SetMovementVector(Vector2 move)
-    {
-        _moveDirection = new Vector3(move.x, 0f, move.y);
-
-        transform.position += _moveDirection * (Time.deltaTime * Speed);
+        bool movementStopped = false;
         
+        // was not moving
+        if (_move.magnitude == 0)
+        {
+            // movement started
+            if (move.magnitude > 0)
+            {
+                _animator.CrossFade(_moveState, 0.1f, 0, 0);
+            }
+        }
+        // was moving
+        else
+        {
+            // movement stopped
+            if (move.magnitude == 0)
+            {
+                _animator.CrossFade(_idleState, 0.1f, 0, 0);
+                movementStopped = true;
+            }
+        }
+        
+        _move = new Vector3(move.x, 0f, move.y);
+        transform.position += _move * (Time.deltaTime * Speed);
+
+        if (movementStopped)
+            return;
+
         float angle = Mathf.Atan2(move.x, move.y) * Mathf.Rad2Deg;
         transform.rotation = Quaternion.Euler(0, angle, 0);
-
-        _moveDirection.x = 0;
-        _moveDirection.z = 0;
-    }
-    
-    public void MovementStopped()
-    {
-        _animator.CrossFade(_idleState, 0.1f, 0, 0);
     }
 
     void Damage()

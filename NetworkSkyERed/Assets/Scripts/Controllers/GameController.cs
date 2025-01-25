@@ -71,7 +71,7 @@ public class GameController : NetworkBehaviour
         if (NetworkManager.Singleton.IsHost)
         {
             PlayerId playerId = _idToPlayerId[id];
-            _characterViews[playerId].SetMovementVector(move);
+            _characterViews[playerId].Move(move);
         }
         else
             MoveRpc((byte)id, move);
@@ -84,20 +84,36 @@ public class GameController : NetworkBehaviour
         if (NetworkManager.Singleton.IsHost)
         {
             PlayerId playerId = _idToPlayerId[id];
-            _playersModels[playerId].Attack();
+            _characterViews[playerId].Attack();
         }
         else
             AttackRpc((byte)id);
     }
     
-    public void ChangeCharacter(byte clientId)
+    public void ChangeCharacter()
     {
         ulong id = NetworkManager.Singleton.LocalClientId;
 
         if (NetworkManager.Singleton.IsHost)
         {
             PlayerId playerId = _idToPlayerId[id];
-            _playersModels[playerId].ChangeCharacter();
+
+            PlayerModel model = _playersModels[playerId];
+
+            if (model.CanChangeCharacter)
+            {
+                CharacterView character = _characterViews[playerId];
+                character.PlayerDissolve();
+                
+                model.ChangeCharacter();
+                
+                
+            }
+            
+            
+
+            // start disolving this one
+            //_characterViews[playerId].di
         }
         else
             ChangeCharacterRpc((byte)id);
@@ -108,16 +124,15 @@ public class GameController : NetworkBehaviour
     void MoveRpc(byte clientId, Vector2 move)
     {
         PlayerId playerId = _idToPlayerId[clientId];
-        _characterViews[playerId].SetMovementVector(move);
-        
-        Debug.Log($"MoveRpc Body executed, clientId: {clientId}");
+        _characterViews[playerId].Move(move);
     }
     
     [Rpc(SendTo.Server)]
     // ReSharper disable once MemberCanBeMadeStatic.Local
     void AttackRpc(byte clientId)
     {
-        Debug.Log($"AttackRPC Body executed, clientId: {clientId}");
+        PlayerId playerId = _idToPlayerId[clientId];
+        _characterViews[playerId].Attack();
     }
 
     [Rpc(SendTo.Server)]
