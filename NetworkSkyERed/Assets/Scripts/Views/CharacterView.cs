@@ -1,11 +1,14 @@
-using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.Rendering;
 
 public class CharacterView : NetworkBehaviour
 {
-    //public NetworkVariable<byte> NetworkHp = new(5);
+    public int Id => _id;
+    int _id;
+    public PlayerId PlayerId;
+
+    static int _idCounter;
     
     int Hp
     {
@@ -47,22 +50,29 @@ public class CharacterView : NetworkBehaviour
     [SerializeField]
     float Speed = 4;
 
-    const int Dissolve = 1;
+    /*const int Dissolve = 1;
     const int AttackId = 2;
     const int Surprised = 3;
-    readonly Dictionary<int, bool> _playerStatus = new() {{Dissolve, false}, {AttackId, false}, {Surprised, false}};
+    readonly Dictionary<int, bool> _playerStatus = new() {{Dissolve, false}, {AttackId, false}, {Surprised, false}};*/
+    
+    static readonly int _dissolve1 = Animator.StringToHash("Dissolve");
 
     // order of execution
     // when dynamically spawned: Awake -> OnNetworkSpawn -> Start
     // when in-Scene placed:     Awake -> Start -> OnNetworkSpawn
     
-    //void Start() => Hp = MaxHp;
-
-    /*public override void OnNetworkSpawn()
+    public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
-        //Hp = MaxHp;
-    }*/
+        _id = _idCounter++;
+    }
+
+    public override void OnNetworkDespawn()
+    {
+        base.OnNetworkDespawn();
+
+        //Debug.Log("OnNetworkDespawn, Id: " + _id);
+    }
 
     void Update()
     {
@@ -72,50 +82,14 @@ public class CharacterView : NetworkBehaviour
             _skinnedMeshRenderer.material.SetFloat(_dissolve, _dissolveValue);
         }
 
-
         Status();
-
-        
-        
-        // this character status
-        /*if (!_playerStatus.ContainsValue(true))
-        {
-            //Damage();
-        }
-        else if (_playerStatus.ContainsValue(true))
-        {
-            int statusName = 0;
-            foreach (KeyValuePair<int, bool> i in _playerStatus)
-                if (i.Value)
-                {
-                    statusName = i.Key;
-                    break;
-                }
-
-            if (statusName == Dissolve)
-            {
-                PlayerDissolve();
-            }
-        }
-
-        // Dissolve
-        if (_hp <= 0 && !_dissolveFlg)
-        {
-            _animator.CrossFade(_dissolveState, 0.1f, 0, 0);
-            _dissolveFlg = true;
-        }
-        // processing at respawn
-        else if (_hp == MaxHp && _dissolveFlg)
-        {
-            _dissolveFlg = false;
-        }*/
     }
 
     //------------------------------
     void Status()
     {
         // during dissolve
-        if (_dissolveFlg /*&& _hp <= 0*/)
+        /*if (_dissolveFlg /*&& _hp <= 0#1#)
             _playerStatus[Dissolve] = true;
         else if (!_dissolveFlg)
             _playerStatus[Dissolve] = false;
@@ -130,20 +104,24 @@ public class CharacterView : NetworkBehaviour
         if (_animator.GetCurrentAnimatorStateInfo(0).fullPathHash == _surprisedState)
             _playerStatus[Surprised] = true;
         else if (_animator.GetCurrentAnimatorStateInfo(0).fullPathHash != _surprisedState)
-            _playerStatus[Surprised] = false;
+            _playerStatus[Surprised] = false;*/
     }
 
     /// <summary>
     /// Starts dissolving animation.
     /// Disables shadows.
     /// </summary>
-    public void PlayerDissolve()
+    public void Dissolve()
+    {
+        /*_dissolveFlg = true;
+        _skinnedMeshRenderer.shadowCastingMode = ShadowCastingMode.Off;*/
+        _animator.SetBool(_dissolve1, true);
+    }
+
+    public void OnDissolveStart()
     {
         _dissolveFlg = true;
         _skinnedMeshRenderer.shadowCastingMode = ShadowCastingMode.Off;
-        Debug.Log("Dissolve started");
-        /*_dissolveValue -= Time.deltaTime;
-        _skinnedMeshRenderer.material.SetFloat(_dissolve, _dissolveValue);*/
     }
 
     // play the animation of Attack

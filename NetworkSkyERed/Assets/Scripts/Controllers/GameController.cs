@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Netcode;
@@ -19,12 +20,16 @@ public class GameController : NetworkBehaviour
     /// ClientId do not recycle instantaneously.
     /// </summary>
     readonly Dictionary<ulong, PlayerId> _idToPlayerId = new();
+
+    /// <summary>
+    /// The Character the player is currently using.
+    /// </summary>
+    readonly CharacterView[] _characters = new CharacterView[Enum.GetValues(typeof(PlayerId)).Length];
     
     /// <summary>
-    /// Maps clientId to PlayerId.
-    /// ClientId do not recycle instantaneously.
+    /// These characters will be destroyed soon.
     /// </summary>
-    readonly Dictionary<PlayerId, CharacterView> _characterViews = new();
+    readonly Dictionary<PlayerId, List<CharacterView>> _deadCharacters = new();
 
     // configuration
     [SerializeField]
@@ -47,20 +52,29 @@ public class GameController : NetworkBehaviour
             if (!NetworkManager.Singleton.IsHost)
                 return;
             
-            PlayerId playerId = clientId == 0 ? PlayerId.FirstPlayer : PlayerId.SecondPlayer;
+            PlayerId playerId = clientId == NetworkManager.Singleton.LocalClient.ClientId
+                ? PlayerId.FirstPlayer
+                : PlayerId.SecondPlayer;
+
             _idToPlayerId.Add(clientId, playerId);
 
             List<Character> list = playerId == PlayerId.FirstPlayer ? _hostStartCharacters.ToList() : _clientStartCharacters.ToList();
             var player = new PlayerModel(list);
             _playersModels.Add(playerId, player);
+            _deadCharacters.Add(playerId, new List<CharacterView>());
             
             // initially always spawn the first character
-            CharacterView character = Instantiate(_characterPrefabs[(int)player.CurrentCharacter], new Vector3(0, -0.7f, 0), Quaternion.identity);
+            CharacterView character = Instantiate(
+                _characterPrefabs[(int)player.CurrentCharacter],
+                new Vector3(0, -0.7f, 0),
+                Quaternion.Euler(0, 180, 0));
+
+            character.PlayerId = playerId;
 
             // spawn over the network
-            character.NetworkObject.SpawnWithOwnership(clientId);
-            
-            _characterViews.Add(playerId, character);
+            character.NetworkObject.SpawnWithOwnership(NetworkManager.Singleton.LocalClient.ClientId);
+
+            _characters[(int)playerId] = character;
         };   
     }
 
@@ -71,7 +85,7 @@ public class GameController : NetworkBehaviour
         if (NetworkManager.Singleton.IsHost)
         {
             PlayerId playerId = _idToPlayerId[id];
-            _characterViews[playerId].Move(move);
+            _characters[(int)playerId].Move(move);
         }
         else
             MoveRpc((byte)id, move);
@@ -84,7 +98,7 @@ public class GameController : NetworkBehaviour
         if (NetworkManager.Singleton.IsHost)
         {
             PlayerId playerId = _idToPlayerId[id];
-            _characterViews[playerId].Attack();
+            _characters[(int)playerId].Attack();
         }
         else
             AttackRpc((byte)id);
@@ -95,33 +109,25 @@ public class GameController : NetworkBehaviour
         ulong id = NetworkManager.Singleton.LocalClientId;
 
         if (NetworkManager.Singleton.IsHost)
-        {
-            PlayerId playerId = _idToPlayerId[id];
-
-            PlayerModel model = _playersModels[playerId];
-
-            if (model.CanChangeCharacter)
-            {
-                CharacterView previous = _characterViews[playerId];
-                previous.PlayerDissolve();
-                
-                // todo: despawn
-                
-                model.ChangeCharacter();
-                
-                // initially always spawn the first character
-                CharacterView nextCharacter = Instantiate(_characterPrefabs[(int)model.CurrentCharacter], previous.transform.position, Quaternion.identity);
-
-                // spawn over the network
-                nextCharacter.NetworkObject.SpawnWithOwnership(id);
-                _characterViews[playerId] = nextCharacter;
-            }
-
-            // start dissolving this one
-            //_characterViews[playerId].di
-        }
+            ChangeCharacterLogic(id);
         else
             ChangeCharacterRpc((byte)id);
+    }
+
+    public void OnCharacterDeath(PlayerId playerId, int characterId)
+    {
+        if (!NetworkManager.Singleton.IsHost)
+            return;
+
+        List<CharacterView> list = _deadCharacters[playerId];
+        
+        int index = list.FindIndex(c => c.Id == characterId);
+        uint tickRate = NetworkManager.Singleton.NetworkTickSystem.TickRate;
+        
+        // todo: get dissolve animation length;
+
+        list[index].NetworkObject.Despawn();
+        list.RemoveAt(index);
     }
     
     [Rpc(SendTo.Server)]
@@ -129,7 +135,7 @@ public class GameController : NetworkBehaviour
     void MoveRpc(byte clientId, Vector2 move)
     {
         PlayerId playerId = _idToPlayerId[clientId];
-        _characterViews[playerId].Move(move);
+        _characters[(int)playerId].Move(move);
     }
     
     [Rpc(SendTo.Server)]
@@ -137,14 +143,34 @@ public class GameController : NetworkBehaviour
     void AttackRpc(byte clientId)
     {
         PlayerId playerId = _idToPlayerId[clientId];
-        _characterViews[playerId].Attack();
+        _characters[(int)playerId].Attack();
     }
 
     [Rpc(SendTo.Server)]
     // ReSharper disable once MemberCanBeMadeStatic.Local
     void ChangeCharacterRpc(byte clientId)
     {
+        ChangeCharacterLogic(clientId);
+    }
+
+    void ChangeCharacterLogic(ulong id)
+    {
+        PlayerId playerId = _idToPlayerId[id];
+        CharacterView previous = _characters[(int)playerId];
+        previous.Dissolve();
+        _deadCharacters[playerId].Add(previous);
         
+        PlayerModel model = _playersModels[playerId];
+        model.ChangeCharacter();
+            
+        // initially always spawn the first character
+        Transform t = previous.transform;
+        CharacterView nextCharacter = Instantiate(_characterPrefabs[(int)model.CurrentCharacter], t.position, t.rotation);
+        nextCharacter.PlayerId = playerId;
+
+        // spawn over the network
+        nextCharacter.NetworkObject.SpawnWithOwnership(NetworkManager.Singleton.LocalClient.ClientId);
+        _characters[(int)playerId] = nextCharacter;
     }
 }
 

@@ -47,7 +47,6 @@ class PlayerInputController : MonoBehaviour
         // player attack actions
         _attackAction.performed += _ =>
         {
-            Debug.Log("Attack");
             GameController.Singleton.Attack();
         };
         
@@ -56,7 +55,6 @@ class PlayerInputController : MonoBehaviour
         // player attack actions
         _changeCharacter.performed += _ =>
         {
-            Debug.Log("Change player");
             GameController.Singleton.ChangeCharacter();
         };
     }
