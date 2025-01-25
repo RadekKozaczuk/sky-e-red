@@ -5,7 +5,7 @@ using UnityEngine.Rendering;
 
 public class CharacterView : NetworkBehaviour
 {
-    public NetworkVariable<byte> NetworkHp = new(5);
+    //public NetworkVariable<byte> NetworkHp = new(5);
     
     int Hp
     {
@@ -56,13 +56,13 @@ public class CharacterView : NetworkBehaviour
     // when dynamically spawned: Awake -> OnNetworkSpawn -> Start
     // when in-Scene placed:     Awake -> Start -> OnNetworkSpawn
     
-    void Start() => Hp = MaxHp;
+    //void Start() => Hp = MaxHp;
 
-    public override void OnNetworkSpawn()
+    /*public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
-        Hp = MaxHp;
-    }
+        //Hp = MaxHp;
+    }*/
 
     void Update()
     {
@@ -115,7 +115,7 @@ public class CharacterView : NetworkBehaviour
     void Status()
     {
         // during dissolve
-        if (_dissolveFlg && _hp <= 0)
+        if (_dissolveFlg /*&& _hp <= 0*/)
             _playerStatus[Dissolve] = true;
         else if (!_dissolveFlg)
             _playerStatus[Dissolve] = false;
@@ -141,7 +141,7 @@ public class CharacterView : NetworkBehaviour
     {
         _dissolveFlg = true;
         _skinnedMeshRenderer.shadowCastingMode = ShadowCastingMode.Off;
-        Debug.Log("Disolve started");
+        Debug.Log("Dissolve started");
         /*_dissolveValue -= Time.deltaTime;
         _skinnedMeshRenderer.material.SetFloat(_dissolve, _dissolveValue);*/
     }

@@ -102,17 +102,22 @@ public class GameController : NetworkBehaviour
 
             if (model.CanChangeCharacter)
             {
-                CharacterView character = _characterViews[playerId];
-                character.PlayerDissolve();
+                CharacterView previous = _characterViews[playerId];
+                previous.PlayerDissolve();
+                
+                // todo: despawn
                 
                 model.ChangeCharacter();
                 
-                
-            }
-            
-            
+                // initially always spawn the first character
+                CharacterView nextCharacter = Instantiate(_characterPrefabs[(int)model.CurrentCharacter], previous.transform.position, Quaternion.identity);
 
-            // start disolving this one
+                // spawn over the network
+                nextCharacter.NetworkObject.SpawnWithOwnership(id);
+                _characterViews[playerId] = nextCharacter;
+            }
+
+            // start dissolving this one
             //_characterViews[playerId].di
         }
         else
