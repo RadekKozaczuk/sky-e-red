@@ -96,6 +96,7 @@ public class CharacterView : NetworkBehaviour
     {
         _dissolveValue = 1;
         _skinnedMeshRenderer.material.SetFloat(_dissolve, _dissolveValue);
+        _skinnedMeshRenderer.shadowCastingMode = ShadowCastingMode.On;
         _dissolveFlag = false;
     }
     
