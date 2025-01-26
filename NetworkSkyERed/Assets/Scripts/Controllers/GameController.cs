@@ -17,17 +17,9 @@ public class GameController : NetworkBehaviour
     /// </summary>
     readonly Dictionary<ulong, PlayerId> _idToPlayerId = new();
 
-    /// <summary>
-    /// The Character the player is currently using.
-    /// </summary>
-    public readonly CharacterView[] _characters = new CharacterView[Enum.GetValues(typeof(PlayerId)).Length];
+    readonly CharacterView[] _characters = new CharacterView[Enum.GetValues(typeof(PlayerId)).Length];
     
-    /// <summary>
-    /// These characters will be destroyed soon.
-    /// </summary>
-    readonly Dictionary<PlayerId, List<CharacterView>> _deadCharacters = new();
-
-    public readonly List<CharacterView> Characters = new();
+    public readonly Dictionary<ulong, CharacterView> Characters = new();
 
     [SerializeField]
     GameData _gameData;
@@ -61,7 +53,6 @@ public class GameController : NetworkBehaviour
 
             var player = new PlayerModel(list);
             _playersModels.Add(playerId, player);
-            _deadCharacters.Add(playerId, new List<CharacterView>());
             
             // initially always spawn the first character
             CharacterData data = _characterData[(int)player.CurrentCharacter];
@@ -114,21 +105,14 @@ public class GameController : NetworkBehaviour
             ChangeCharacterRpc((byte)id);
     }
 
-    public void OnCharacterDeath(PlayerId playerId, ulong networkObjectId)
+    public void OnCharacterDeath(ulong networkObjectId)
     {
         if (!NetworkManager.Singleton.IsHost)
             return;
 
-        List<CharacterView> list = _deadCharacters[playerId];
-        
-        int index = list.FindIndex(c => c.NetworkObjectId == networkObjectId);
-        
-        CharacterView view = list[index];
+        CharacterView view = Characters[networkObjectId];
         CharacterData data = _characterData[(int)view.Character];
         NetworkObjectPool.Singleton.ReturnNetworkObject(view.NetworkObject, data.Prefab.gameObject);
-        
-        // todo: animation should start with delay and fast forward
-        list.RemoveAt(index);
     }
     
     [Rpc(SendTo.Server)]
@@ -172,7 +156,6 @@ public class GameController : NetworkBehaviour
         PlayerId playerId = _idToPlayerId[id];
         CharacterView previous = _characters[(int)playerId];
         previous.Dissolve();
-        _deadCharacters[playerId].Add(previous);
         
         PlayerModel model = _playersModels[playerId];
         model.ChangeCharacter();
@@ -193,18 +176,22 @@ public class GameController : NetworkBehaviour
         NetworkObject netObject = NetworkObjectPool.Singleton.GetNetworkObject(data.Prefab.gameObject, pos, rot);
         var character = netObject.GetComponent<CharacterView>();
 
+        
+
+        // todo: dunno how to use container
+        //character.NetworkObject.TrySetParent(SceneReferenceHolder.CharacterContainer);
+        
+        // todo: Fixed I disabled the networktransform before parenting and spawning. after object is spawned it is successfully parented
+            
+        // spawn over the network
+        if (!character.IsSpawned)
+            netObject.SpawnWithOwnership(NetworkManager.Singleton.LocalClient.ClientId);
+        
         character.Initialize(playerId, data);
         character.InitializeVisuals();
         
         // send info to everybody else
         InitializeRpc(netObject.NetworkObjectId);
-
-        // todo: dunno how to use container
-        //character.NetworkObject.TrySetParent(SceneReferenceHolder.CharacterContainer);
-            
-        // spawn over the network
-        if (!character.IsSpawned)
-            netObject.SpawnWithOwnership(NetworkManager.Singleton.LocalClient.ClientId);
 
         return character;
     }
@@ -214,7 +201,7 @@ public class GameController : NetworkBehaviour
     {
         Debug.Log($"Initialize RPC executed on clientId: {NetworkManager.Singleton.LocalClient.ClientId}, networkObjectId: {networkObjectId}");
 
-        CharacterView character = Characters.First(c => c.NetworkObjectId == networkObjectId);
+        CharacterView character = Characters[networkObjectId];
         character.InitializeVisuals();
     }
 }
