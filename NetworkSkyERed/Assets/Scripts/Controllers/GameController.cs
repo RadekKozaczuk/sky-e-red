@@ -178,11 +178,13 @@ public class GameController : NetworkBehaviour
 
         // spawn over the network
         if (!character.IsSpawned)
+        {
             netObject.SpawnWithOwnership(NetworkManager.Singleton.LocalClient.ClientId);
-        
+            character.NetworkObject.TrySetParent(SceneReferenceHolder.CharacterContainer);
+        }
+
         character.Initialize(playerId, data);
         character.InitializeVisuals();
-        character.NetworkObject.TrySetParent(SceneReferenceHolder.CharacterContainer);
         
         // send info to everybody else
         InitializeRpc(netObject.NetworkObjectId);
@@ -193,8 +195,6 @@ public class GameController : NetworkBehaviour
     [Rpc(SendTo.NotMe)]
     void InitializeRpc(ulong networkObjectId)
     {
-        Debug.Log($"Initialize RPC executed on clientId: {NetworkManager.Singleton.LocalClient.ClientId}, networkObjectId: {networkObjectId}");
-
         CharacterView character = Characters[networkObjectId];
         character.InitializeVisuals();
     }
