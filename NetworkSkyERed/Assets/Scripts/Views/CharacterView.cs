@@ -1,11 +1,11 @@
 using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.Assertions;
 using UnityEngine.Rendering;
 
 public class CharacterView : NetworkBehaviour
 {
-    public int Id { get; private set; }
+    //public int Id { get; private set; }
+    public Character Character { get; private set; }
     public PlayerId PlayerId { get; private set; }
 
     int Hp
@@ -67,17 +67,16 @@ public class CharacterView : NetworkBehaviour
     static readonly int _attackState = Animator.StringToHash("Base Layer.attack_shift");
     static readonly int _dissolveState = Animator.StringToHash("Base Layer.dissolve");
     static readonly int _attackTag = Animator.StringToHash("Attack");
-    
+    static readonly int _dissolve1 = Animator.StringToHash("Dissolve");
+
     static readonly int _dissolve = Shader.PropertyToID("_Dissolve");
 
     // dissolve
     [SerializeField]
     SkinnedMeshRenderer _skinnedMeshRenderer;
 
-    float _dissolveValue = 1;
+    float _dissolveValue;// = 1;
     bool _dissolveFlag;
-    
-    static readonly int _dissolve1 = Animator.StringToHash("Dissolve");
 
     // order of execution
     // when dynamically spawned: Awake -> OnNetworkSpawn -> Start
@@ -91,11 +90,20 @@ public class CharacterView : NetworkBehaviour
         Hp = data.MaxHp;
         _speed = data.Speed;
     }
+
+    public void InitializeVisuals()
+    {
+        _dissolveValue = 1;
+        _skinnedMeshRenderer.material.SetFloat(_dissolve, _dissolveValue);
+        _skinnedMeshRenderer.shadowCastingMode = ShadowCastingMode.On;
+        _dissolveFlag = false;
+    }
     
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
-        Id = _idCounter++;
+        
+        GameController.Singleton.Characters.Add(NetworkObjectId, this);
     }
 
     void Update()
