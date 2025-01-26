@@ -1557,7 +1557,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _hp: {fileID: 268580927}
-  _characterContainer: {fileID: 0}
+  _characterContainer: {fileID: 793475084}
 --- !u!4 &1363725228
 Transform:
   m_ObjectHideFlags: 0

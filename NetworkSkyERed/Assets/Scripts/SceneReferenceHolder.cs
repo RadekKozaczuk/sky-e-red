@@ -1,15 +1,16 @@
+using Unity.Netcode;
 using UnityEngine;
 
 public class SceneReferenceHolder : MonoBehaviour
 {
     public static HpView Hp;
-    public static Transform CharacterContainer;
+    public static NetworkObject CharacterContainer;
 
     [SerializeField]
     HpView _hp;
     
     [SerializeField]
-    Transform _characterContainer;
+    NetworkObject _characterContainer;
 
     void Awake()
     {

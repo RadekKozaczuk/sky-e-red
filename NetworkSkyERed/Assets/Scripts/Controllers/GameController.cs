@@ -176,19 +176,13 @@ public class GameController : NetworkBehaviour
         NetworkObject netObject = NetworkObjectPool.Singleton.GetNetworkObject(data.Prefab.gameObject, pos, rot);
         var character = netObject.GetComponent<CharacterView>();
 
-        
-
-        // todo: dunno how to use container
-        //character.NetworkObject.TrySetParent(SceneReferenceHolder.CharacterContainer);
-        
-        // todo: Fixed I disabled the networktransform before parenting and spawning. after object is spawned it is successfully parented
-            
         // spawn over the network
         if (!character.IsSpawned)
             netObject.SpawnWithOwnership(NetworkManager.Singleton.LocalClient.ClientId);
         
         character.Initialize(playerId, data);
         character.InitializeVisuals();
+        character.NetworkObject.TrySetParent(SceneReferenceHolder.CharacterContainer);
         
         // send info to everybody else
         InitializeRpc(netObject.NetworkObjectId);
