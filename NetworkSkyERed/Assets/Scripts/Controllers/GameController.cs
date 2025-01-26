@@ -41,21 +41,33 @@ public class GameController : NetworkBehaviour
             if (!NetworkManager.Singleton.IsHost)
                 return;
 
-            PlayerId playerId = clientId == NetworkManager.Singleton.LocalClient.ClientId ? PlayerId.FirstPlayer : PlayerId.SecondPlayer;
-
-            List<Character> list = playerId == PlayerId.FirstPlayer
-                ? GameData.FirstPlayerStartCharacters.ToList()
-                : GameData.SecondPlayerStartCharacters.ToList();
-
+            PlayerId playerId;
+            List<Character> list;
+            Vector2 spawnPos;
+            
+            // first player
+            if (clientId == NetworkManager.Singleton.LocalClient.ClientId)
+            {
+                playerId = PlayerId.FirstPlayer;
+                list = GameData.FirstPlayerStartCharacters.ToList();
+                spawnPos = GameData.FirstPlayerSpawnPosition;
+            }
+            else
+            {
+                playerId = PlayerId.SecondPlayer;
+                list = GameData.SecondPlayerStartCharacters.ToList();
+                spawnPos = GameData.SecondPlayerSpawnPosition;
+            }
+            
             var player = new PlayerModel(list);
             _playersModels.Add(playerId, player);
 
             // initially always spawn the first character
-            CharacterData data = CharacterData[(int)player.CurrentCharacter];
-            var position = new Vector3(0, GameData.DefaultPositionYOffset, 0);
+            var position = new Vector3(spawnPos.x, GameData.DefaultPositionYOffset, spawnPos.y);
             Quaternion rotation = Quaternion.Euler(0, GameData.DefaultSpawnRotation, 0);
+            CharacterData data = CharacterData[(int)player.CurrentCharacter];
 
-            CharacterView view = SpawnCharacter(playerId, position, rotation, data);
+            CharacterView view = SpawnCharacter(position, rotation, data);
             _idToPlayerId.Add(clientId, (view.NetworkObjectId, playerId));
         };   
     }
@@ -148,14 +160,14 @@ public class GameController : NetworkBehaviour
         Transform t = previous.transform;
 
         CharacterData data = CharacterData[(int)model.CurrentCharacter];
-        CharacterView next = SpawnCharacter(playerId, t.position, t.rotation, data);
+        CharacterView next = SpawnCharacter(t.position, t.rotation, data);
         next.MovementVector = previous.MovementVector;
         previous.MovementVector = Vector2.zero;
         
         _characters[netObjectId] = next;
     }
     
-    CharacterView SpawnCharacter(PlayerId playerId, Vector3 pos, Quaternion rot, CharacterData data)
+    CharacterView SpawnCharacter(Vector3 pos, Quaternion rot, CharacterData data)
     {
         NetworkObject netObject = NetworkObjectPool.Singleton.GetNetworkObject(data.Prefab.gameObject, pos, rot);
         var view = netObject.GetComponent<CharacterView>();
@@ -167,7 +179,7 @@ public class GameController : NetworkBehaviour
             netObject.TrySetParent(SceneReferenceHolder.CharacterContainer);
         }
 
-        view.Initialize(playerId, data);
+        view.Initialize(data);
         view.InitializeVisuals();
         
         // send info to everybody else

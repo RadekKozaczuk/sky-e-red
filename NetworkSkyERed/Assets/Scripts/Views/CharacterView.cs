@@ -4,8 +4,6 @@ using UnityEngine.Rendering;
 
 public class CharacterView : NetworkBehaviour
 {
-    public PlayerId PlayerId { get; private set; }
-
     int Hp
     {
         get => _hp;
@@ -106,9 +104,8 @@ public class CharacterView : NetworkBehaviour
     }
     bool _dissolveStateChange;
     
-    public void Initialize(PlayerId playerId, CharacterData data)
+    public void Initialize(CharacterData data)
     {
-        PlayerId = playerId;
         _character = data.Character;
         Hp = data.MaxHp;
         _speed = data.Speed;
