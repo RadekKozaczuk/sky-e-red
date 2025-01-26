@@ -14,11 +14,11 @@ public class PlayerModel
     readonly List<Character> _characters;
     readonly List<int> _hpValues;
     int _currentCharacterIndex;
-
-    public PlayerModel(List<Character> characters)
+    
+    public PlayerModel(List<Character> characters, List<int> hpValues)
     {
         _characters = characters;
-        _hpValues = new List<int>(characters.Count);
+        _hpValues = hpValues;
         _currentCharacterIndex = 0;
     }
 

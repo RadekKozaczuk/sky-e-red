@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Netcode;
@@ -32,7 +31,7 @@ public class GameController : NetworkBehaviour
     readonly List<(ulong, bool)> _pendingActivations = new();
     
     /// <summary>
-    /// Uses for movement vector quantization.
+    /// Used for movement vector quantization.
     /// </summary>
     const float MinusOne = -1f;
 
@@ -65,13 +64,26 @@ public class GameController : NetworkBehaviour
                 spawnPos = GameData.SecondPlayerSpawnPosition;
             }
             
-            var player = new PlayerModel(list);
+            // builder patten
+            var builder = new PlayerBuilder();
+            CharacterData data;
+            
+            foreach (Character character in list)
+            {
+                data = CharacterData[(int)character];
+                builder.HasCharacter(character)
+                       .WithHp(data.MaxHp)
+                       .WithDamage(data.Damage)
+                       .WithSpeed(data.Speed);
+            }
+
+            PlayerModel player = builder.Player;
             _playersModels.Add(playerId, player);
 
             // initially always spawn the first character
             var position = new Vector3(spawnPos.x, GameData.DefaultPositionYOffset, spawnPos.y);
             Quaternion rotation = Quaternion.Euler(0, GameData.DefaultSpawnRotation, 0);
-            CharacterData data = CharacterData[(int)player.CurrentCharacter];
+            data = CharacterData[(int)player.CurrentCharacter];
 
             CharacterView view = SpawnCharacter(position, rotation, data);
             _idToPlayerId.Add(clientId, (view.NetworkObjectId, playerId));
