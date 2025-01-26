@@ -20,6 +20,8 @@ class PlayerInputController : MonoBehaviour
     /// </summary>
     static bool _movementDown;
 
+    Vector2 _lastMovement;
+
     void Awake()
     {
         InputActionMap gameplay = _inputActionAsset.FindActionMap(PlayerActionMap);
@@ -64,7 +66,12 @@ class PlayerInputController : MonoBehaviour
         if (_movementDown)
         {
             var move = _movementAction.ReadValue<Vector2>();
-            GameController.Singleton.Move(move);
+            
+            // send information only when it's different
+            if (move != _lastMovement)
+                GameController.Singleton.Move(move);
+
+            _lastMovement = move;
         }
     }
 }

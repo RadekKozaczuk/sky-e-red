@@ -85,7 +85,7 @@ public class GameController : NetworkBehaviour
         if (NetworkManager.Singleton.IsHost)
         {
             PlayerId playerId = _idToPlayerId[id];
-            _characters[(int)playerId].Move(move);
+            _characters[(int)playerId].SetMovementVector(move);
         }
         else
             MoveRpc((byte)id, move);
@@ -139,8 +139,9 @@ public class GameController : NetworkBehaviour
     // ReSharper disable once MemberCanBeMadeStatic.Local
     void MoveRpc(byte clientId, Vector2 move)
     {
+        Debug.Log($"Received Move RPC from clientId: {clientId}");
         PlayerId playerId = _idToPlayerId[clientId];
-        _characters[(int)playerId].Move(move);
+        _characters[(int)playerId].SetMovementVector(move);
     }
     
     [Rpc(SendTo.Server)]

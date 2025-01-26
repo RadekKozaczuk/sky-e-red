@@ -25,6 +25,7 @@ public class CharacterView : NetworkBehaviour
     Animator _animator;
 
     Vector3 _move = Vector3.zero;
+    Quaternion _rotation = Quaternion.identity;
 
     // Cache hash values
     static readonly int _idleState = Animator.StringToHash("Base Layer.idle");
@@ -41,12 +42,7 @@ public class CharacterView : NetworkBehaviour
     SkinnedMeshRenderer _skinnedMeshRenderer;
 
     float _dissolveValue = 1;
-    bool _dissolveFlg;
-    
-    /*const int Dissolve = 1;
-    const int AttackId = 2;
-    const int Surprised = 3;
-    readonly Dictionary<int, bool> _playerStatus = new() {{Dissolve, false}, {AttackId, false}, {Surprised, false}};*/
+    bool _dissolveFlag;
     
     static readonly int _dissolve1 = Animator.StringToHash("Dissolve");
 
@@ -72,10 +68,16 @@ public class CharacterView : NetworkBehaviour
 
     void Update()
     {
-        if (_dissolveFlg)
+        if (_dissolveFlag)
         {
             _dissolveValue -= Time.deltaTime;
             _skinnedMeshRenderer.material.SetFloat(_dissolve, _dissolveValue);
+        }
+
+        if (_move.magnitude > 0)
+        {
+            transform.position += _move * (Time.deltaTime * _speed);
+            transform.rotation = _rotation;
         }
     }
 
@@ -90,7 +92,7 @@ public class CharacterView : NetworkBehaviour
 
     public void OnDissolveStart()
     {
-        _dissolveFlg = true;
+        _dissolveFlag = true;
         _skinnedMeshRenderer.shadowCastingMode = ShadowCastingMode.Off;
     }
 
@@ -101,38 +103,26 @@ public class CharacterView : NetworkBehaviour
     /// Last change of the movement vector.
     /// Meaning that if you want the character to stop you have to send <see cref="Vector2.zero"/>.
     /// </summary>
-    public void Move(Vector2 move)
+    public void SetMovementVector(Vector2 move)
     {
-        bool movementStopped = false;
-        
         // was not moving
         if (_move.magnitude == 0)
         {
             // movement started
             if (move.magnitude > 0)
-            {
                 _animator.CrossFade(_moveState, 0.1f, 0, 0);
-            }
         }
         // was moving
         else
         {
             // movement stopped
             if (move.magnitude == 0)
-            {
                 _animator.CrossFade(_idleState, 0.1f, 0, 0);
-                movementStopped = true;
-            }
         }
-        
+
         _move = new Vector3(move.x, 0f, move.y);
-        transform.position += _move * (Time.deltaTime * _speed);
-
-        if (movementStopped)
-            return;
-
         float angle = Mathf.Atan2(move.x, move.y) * Mathf.Rad2Deg;
-        transform.rotation = Quaternion.Euler(0, angle, 0);
+        _rotation = Quaternion.Euler(0, angle, 0);
     }
 
     void Damage()
