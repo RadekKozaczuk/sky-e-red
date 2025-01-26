@@ -4,7 +4,6 @@ using UnityEngine.Rendering;
 
 public class CharacterView : NetworkBehaviour
 {
-    public Character Character { get; private set; }
     public PlayerId PlayerId { get; private set; }
 
     int Hp
@@ -17,10 +16,7 @@ public class CharacterView : NetworkBehaviour
         }
     }
     int _hp;
-
-    [SerializeField]
-    Animator _animator;
-
+    
     public Vector2 MovementVector
     {
         get => _move;
@@ -55,7 +51,11 @@ public class CharacterView : NetworkBehaviour
         }
     } 
     Vector2 _move = Vector2.zero;
-    
+
+    [SerializeField]
+    Animator _animator;
+
+    Character _character;
     Quaternion _rotation = Quaternion.identity;
     static int _idCounter;
 
@@ -66,15 +66,16 @@ public class CharacterView : NetworkBehaviour
     static readonly int _attackState = Animator.StringToHash("Base Layer.attack_shift");
     static readonly int _dissolveState = Animator.StringToHash("Base Layer.dissolve");
     static readonly int _attackTag = Animator.StringToHash("Attack");
-    static readonly int _dissolve1 = Animator.StringToHash("Dissolve");
+    static readonly int _dissolveTag = Animator.StringToHash("Dissolve");
 
     static readonly int _dissolve = Shader.PropertyToID("_Dissolve");
+    static readonly string _dissolve_name = "ghost_dissolve";
 
     // dissolve
     [SerializeField]
     SkinnedMeshRenderer _skinnedMeshRenderer;
 
-    float _dissolveValue;// = 1;
+    float _dissolveValue;
     bool _dissolveFlag;
 
     // order of execution
@@ -83,9 +84,32 @@ public class CharacterView : NetworkBehaviour
 
     float _speed;
     
+    bool DissolveStateChange
+    {
+        get => _dissolveStateChange;
+        set
+        {
+            if (value == _dissolveStateChange)
+                return;
+
+            _dissolveStateChange = value;
+
+            if (value)
+                return;
+
+            if (NetworkManager.Singleton.IsHost)
+            {
+                GameObject prefab = GameController.Singleton.CharacterData[(int)_character].Prefab.gameObject; 
+                NetworkObjectPool.Singleton.ReturnNetworkObject(NetworkObject, prefab);
+            }
+        }
+    }
+    bool _dissolveStateChange;
+    
     public void Initialize(PlayerId playerId, CharacterData data)
     {
         PlayerId = playerId;
+        _character = data.Character;
         Hp = data.MaxHp;
         _speed = data.Speed;
     }
@@ -118,15 +142,28 @@ public class CharacterView : NetworkBehaviour
             transform.position += new Vector3(_move.x, 0f, _move.y) * (Time.deltaTime * _speed);
             transform.rotation = _rotation;
         }
+        
+        Status();
+    }
+    
+    void Status()
+    {
+        AnimatorClipInfo[] clips = _animator.GetCurrentAnimatorClipInfo(0);
+
+        if (clips.Length == 0)
+            return;
+
+        AnimatorClipInfo clip = clips[0];
+        DissolveStateChange = clip.clip.name.Equals(_dissolve_name);
     }
 
     /// <summary>
     /// Starts dissolving animation.
     /// Disables shadows.
     /// </summary>
-    public void Dissolve()
+    public void DissolveMethod()
     {
-        _animator.SetBool(_dissolve1, true);
+        _animator.SetBool(_dissolveTag, true);
     }
 
     public void OnDissolveStart()

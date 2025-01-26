@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.Assertions;
 
 public class GameController : NetworkBehaviour
 {
@@ -23,11 +22,8 @@ public class GameController : NetworkBehaviour
     /// </summary>
     readonly Dictionary<ulong, CharacterView> _characters = new();
 
-    [SerializeField]
-    GameData _gameData;
-
-    [SerializeField]
-    CharacterData[] _characterData;
+    public GameData GameData;
+    public CharacterData[] CharacterData;
 
     /// <summary>
     /// Uses for movement vector quantization.
@@ -48,16 +44,16 @@ public class GameController : NetworkBehaviour
             PlayerId playerId = clientId == NetworkManager.Singleton.LocalClient.ClientId ? PlayerId.FirstPlayer : PlayerId.SecondPlayer;
 
             List<Character> list = playerId == PlayerId.FirstPlayer
-                ? _gameData.FirstPlayerStartCharacters.ToList()
-                : _gameData.SecondPlayerStartCharacters.ToList();
+                ? GameData.FirstPlayerStartCharacters.ToList()
+                : GameData.SecondPlayerStartCharacters.ToList();
 
             var player = new PlayerModel(list);
             _playersModels.Add(playerId, player);
 
             // initially always spawn the first character
-            CharacterData data = _characterData[(int)player.CurrentCharacter];
-            var position = new Vector3(0, _gameData.DefaultPositionYOffset, 0);
-            Quaternion rotation = Quaternion.Euler(0, _gameData.DefaultSpawnRotation, 0);
+            CharacterData data = CharacterData[(int)player.CurrentCharacter];
+            var position = new Vector3(0, GameData.DefaultPositionYOffset, 0);
+            Quaternion rotation = Quaternion.Euler(0, GameData.DefaultSpawnRotation, 0);
 
             CharacterView view = SpawnCharacter(playerId, position, rotation, data);
             _idToPlayerId.Add(clientId, (view.NetworkObjectId, playerId));
@@ -106,16 +102,6 @@ public class GameController : NetworkBehaviour
             ChangeCharacterRpc((byte)id);
     }
 
-    public void OnCharacterDeath(ulong networkObjectId)
-    {
-        Assert.IsTrue(NetworkManager.Singleton.IsHost, "OnCharacterDeath should not be called on Client machines.");
-        
-        Debug.Log($"OnCharacterDeath networkObjectId: {networkObjectId}");
-        CharacterView view = _characters[networkObjectId];
-        CharacterData data = _characterData[(int)view.Character];
-        NetworkObjectPool.Singleton.ReturnNetworkObject(view.NetworkObject, data.Prefab.gameObject);
-    }
-    
     [Rpc(SendTo.Server)]
     // ReSharper disable once MemberCanBeMadeStatic.Local
     void MoveRpc(byte clientId, ushort move)
@@ -153,9 +139,7 @@ public class GameController : NetworkBehaviour
     {
         (ulong netObjectId, PlayerId playerId) = _idToPlayerId[clientId];
         CharacterView previous = _characters[netObjectId];
-        
-        Debug.Log($"NetObjectId: {netObjectId}, Dissolve");
-        previous.Dissolve();
+        previous.DissolveMethod();
         
         PlayerModel model = _playersModels[playerId];
         model.ChangeCharacter();
@@ -163,7 +147,7 @@ public class GameController : NetworkBehaviour
         // initially always spawn the first character
         Transform t = previous.transform;
 
-        CharacterData data = _characterData[(int)model.CurrentCharacter];
+        CharacterData data = CharacterData[(int)model.CurrentCharacter];
         CharacterView next = SpawnCharacter(playerId, t.position, t.rotation, data);
         next.MovementVector = previous.MovementVector;
         previous.MovementVector = Vector2.zero;

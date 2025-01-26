@@ -461,7 +461,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 27.4
+  m_fontSize: 31.35
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -908,7 +908,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 18
+  m_fontSize: 19.1
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -1868,8 +1868,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
-  _gameData: {fileID: 11400000, guid: 1e85ea27f3c74f74ead37914c72a5257, type: 2}
-  _characterData:
+  GameData: {fileID: 11400000, guid: 1e85ea27f3c74f74ead37914c72a5257, type: 2}
+  CharacterData:
   - {fileID: 11400000, guid: 37f3154e31da6f84586f4d6c98c6ca8d, type: 2}
   - {fileID: 11400000, guid: 723b674825d118f41bf7ef6c5a9d8f57, type: 2}
   - {fileID: 11400000, guid: 3737875625557cb4a88c81e7f23d9689, type: 2}
@@ -1890,13 +1890,13 @@ MonoBehaviour:
   DeferredDespawnTick: 0
   Ownership: 1
   AlwaysReplicateAsRoot: 0
-  SynchronizeTransform: 1
+  SynchronizeTransform: 0
   ActiveSceneSynchronization: 0
   SceneMigrationSynchronization: 1
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
-  AutoObjectParentSync: 1
-  SyncOwnerTransformWhenParented: 1
+  AutoObjectParentSync: 0
+  SyncOwnerTransformWhenParented: 0
   AllowOwnerToParent: 0
 --- !u!1 &1907635856
 GameObject:

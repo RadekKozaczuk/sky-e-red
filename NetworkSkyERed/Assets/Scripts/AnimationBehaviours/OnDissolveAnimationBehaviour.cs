@@ -1,4 +1,3 @@
-using Unity.Netcode;
 using UnityEngine;
 
 namespace AnimationBehaviours
@@ -12,15 +11,6 @@ namespace AnimationBehaviours
             animator.SetBool(_dissolve, false);
             var view = animator.gameObject.GetComponent<CharacterView>();
             view.OnDissolveStart();
-        }
-        
-        public override void OnStateExit(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
-        {
-            if (!NetworkManager.Singleton.IsHost)
-                return;
-
-            var view = animator.gameObject.GetComponent<CharacterView>();
-            GameController.Singleton.OnCharacterDeath(view.NetworkObjectId);
         }
     }
 }
