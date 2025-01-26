@@ -1,5 +1,4 @@
-﻿using Unity.Netcode;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace AnimationBehaviours
 {
@@ -16,13 +15,8 @@ namespace AnimationBehaviours
         
         public override void OnStateExit(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
         {
-            // todo probably to be deleted
-            if (!NetworkManager.Singleton.IsHost)
-                return;
-            
             var view = animator.gameObject.GetComponent<CharacterView>();
-            
-            GameController.Singleton.OnCharacterDeath(view.PlayerId, view.Id);
+            GameController.Singleton.OnCharacterDeath(view.NetworkObjectId);
         }
     }
 }
