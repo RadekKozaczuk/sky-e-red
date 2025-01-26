@@ -102,7 +102,7 @@ public class CharacterView : NetworkBehaviour
     {
         base.OnNetworkSpawn();
         
-        GameController.Singleton.Characters.Add(NetworkObjectId, this);
+        GameController.Singleton.AddCharacter(NetworkObjectId, this);
     }
 
     void Update()

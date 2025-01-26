@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Netcode;
@@ -13,24 +12,29 @@ public class GameController : NetworkBehaviour
     readonly Dictionary<PlayerId, PlayerModel> _playersModels = new();
 
     /// <summary>
-    /// Maps clientId to PlayerId.
-    /// ClientId do not recycle instantaneously.
+    /// Key: clientId
+    /// Value: currently played character's networkObjectId and PlayerId
     /// </summary>
-    readonly Dictionary<ulong, PlayerId> _idToPlayerId = new();
+    readonly Dictionary<ulong, (ulong, PlayerId)> _idToPlayerId = new();
 
-    readonly CharacterView[] _characters = new CharacterView[Enum.GetValues(typeof(PlayerId)).Length];
-    public readonly Dictionary<ulong, CharacterView> Characters = new();
+    /// <summary>
+    /// Key: NetworkObjectId
+    /// Value: CharacterView
+    /// </summary>
+    readonly Dictionary<ulong, CharacterView> _characters = new();
 
     [SerializeField]
     GameData _gameData;
 
     [SerializeField]
     CharacterData[] _characterData;
-    
-    void Awake()
-    {
-        Singleton = this;
-    }
+
+    /// <summary>
+    /// Uses for movement vector quantization.
+    /// </summary>
+    const float MinusOne = -1f;
+
+    void Awake() => Singleton = this;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -40,26 +44,27 @@ public class GameController : NetworkBehaviour
             // only host can spawn
             if (!NetworkManager.Singleton.IsHost)
                 return;
-            
-            PlayerId playerId = clientId == NetworkManager.Singleton.LocalClient.ClientId
-                ? PlayerId.FirstPlayer
-                : PlayerId.SecondPlayer;
 
-            _idToPlayerId.Add(clientId, playerId);
+            PlayerId playerId = clientId == NetworkManager.Singleton.LocalClient.ClientId ? PlayerId.FirstPlayer : PlayerId.SecondPlayer;
 
-            List<Character> list = playerId == PlayerId.FirstPlayer 
-                ? _gameData.FirstPlayerStartCharacters.ToList() 
+            List<Character> list = playerId == PlayerId.FirstPlayer
+                ? _gameData.FirstPlayerStartCharacters.ToList()
                 : _gameData.SecondPlayerStartCharacters.ToList();
 
             var player = new PlayerModel(list);
             _playersModels.Add(playerId, player);
-            
+
             // initially always spawn the first character
             CharacterData data = _characterData[(int)player.CurrentCharacter];
-            CharacterView view = SpawnCharacter(playerId, new Vector3(0, -0.7f, 0), Quaternion.Euler(0, 180f, 0), data);
-            _characters[(int)playerId] = view;
+            var position = new Vector3(0, _gameData.DefaultPositionYOffset, 0);
+            Quaternion rotation = Quaternion.Euler(0, _gameData.DefaultSpawnRotation, 0);
+
+            CharacterView view = SpawnCharacter(playerId, position, rotation, data);
+            _idToPlayerId.Add(clientId, (view.NetworkObjectId, playerId));
         };   
     }
+    
+    public void AddCharacter(ulong networkObjectId, CharacterView view) => _characters.Add(networkObjectId, view);
 
     public void Move(Vector2 move)
     {
@@ -67,14 +72,14 @@ public class GameController : NetworkBehaviour
         
         if (NetworkManager.Singleton.IsHost)
         {
-            PlayerId playerId = _idToPlayerId[id];
-            _characters[(int)playerId].MovementVector = move;
+            ulong netObjectId = _idToPlayerId[id].Item1;
+            _characters[netObjectId].MovementVector = move;
         }
         else
         {
             float angle = move.magnitude > 0
                 ? Mathf.Atan2(move.x, move.y) * Mathf.Rad2Deg
-                : -1f;
+                : MinusOne;
 
             ushort quantified = Mathf.FloatToHalf(angle);
             MoveRpc((byte)id, quantified);
@@ -86,10 +91,7 @@ public class GameController : NetworkBehaviour
         ulong id = NetworkManager.Singleton.LocalClientId;
 
         if (NetworkManager.Singleton.IsHost)
-        {
-            PlayerId playerId = _idToPlayerId[id];
-            _characters[(int)playerId].Attack();
-        }
+            _characters[_idToPlayerId[id].Item1].Attack();
         else
             AttackRpc((byte)id);
     }
@@ -108,7 +110,8 @@ public class GameController : NetworkBehaviour
     {
         Assert.IsTrue(NetworkManager.Singleton.IsHost, "OnCharacterDeath should not be called on Client machines.");
         
-        CharacterView view = Characters[networkObjectId];
+        Debug.Log($"OnCharacterDeath networkObjectId: {networkObjectId}");
+        CharacterView view = _characters[networkObjectId];
         CharacterData data = _characterData[(int)view.Character];
         NetworkObjectPool.Singleton.ReturnNetworkObject(view.NetworkObject, data.Prefab.gameObject);
     }
@@ -117,12 +120,12 @@ public class GameController : NetworkBehaviour
     // ReSharper disable once MemberCanBeMadeStatic.Local
     void MoveRpc(byte clientId, ushort move)
     {
-        PlayerId playerId = _idToPlayerId[clientId];
+        ulong netObjectId = _idToPlayerId[clientId].Item1;
 
-        CharacterView character = _characters[(int)playerId];
+        CharacterView character = _characters[netObjectId];
         float angle = Mathf.HalfToFloat(move);
 
-        if (Mathf.Approximately(angle, -1f))
+        if (Mathf.Approximately(angle, MinusOne))
         {
             character.MovementVector = Vector2.zero;
         }
@@ -138,18 +141,20 @@ public class GameController : NetworkBehaviour
     // ReSharper disable once MemberCanBeMadeStatic.Local
     void AttackRpc(byte clientId)
     {
-        PlayerId playerId = _idToPlayerId[clientId];
-        _characters[(int)playerId].Attack();
+        ulong netObjectId = _idToPlayerId[clientId].Item1;
+        _characters[netObjectId].Attack();
     }
 
     [Rpc(SendTo.Server)]
     // ReSharper disable once MemberCanBeMadeStatic.Local
     void ChangeCharacterRpc(byte clientId) => ChangeCharacterLogic(clientId);
 
-    void ChangeCharacterLogic(ulong id)
+    void ChangeCharacterLogic(ulong clientId)
     {
-        PlayerId playerId = _idToPlayerId[id];
-        CharacterView previous = _characters[(int)playerId];
+        (ulong netObjectId, PlayerId playerId) = _idToPlayerId[clientId];
+        CharacterView previous = _characters[netObjectId];
+        
+        Debug.Log($"NetObjectId: {netObjectId}, Dissolve");
         previous.Dissolve();
         
         PlayerModel model = _playersModels[playerId];
@@ -157,13 +162,13 @@ public class GameController : NetworkBehaviour
             
         // initially always spawn the first character
         Transform t = previous.transform;
+
         CharacterData data = _characterData[(int)model.CurrentCharacter];
-        
         CharacterView next = SpawnCharacter(playerId, t.position, t.rotation, data);
         next.MovementVector = previous.MovementVector;
         previous.MovementVector = Vector2.zero;
         
-        _characters[(int)playerId] = next;
+        _characters[netObjectId] = next;
     }
     
     CharacterView SpawnCharacter(PlayerId playerId, Vector3 pos, Quaternion rot, CharacterData data)
@@ -188,6 +193,6 @@ public class GameController : NetworkBehaviour
     }
     
     [Rpc(SendTo.NotMe)]
-    void InitializeRpc(ulong networkObjectId) => Characters[networkObjectId].InitializeVisuals();
+    void InitializeRpc(ulong networkObjectId) => _characters[networkObjectId].InitializeVisuals();
 }
 

@@ -107,8 +107,7 @@ public class NetworkObjectPool : NetworkBehaviour
 
         // Create the pool
         _pooledObjects[prefab] = new ObjectPool<NetworkObject>(CreateFunc, ActionOnGet, ActionOnRelease, ActionOnDestroy, 
-                                                               defaultCapacity: prewarmCount, 
-                                                               maxSize: Enum.GetValues(typeof(PlayerId)).Length * 2);
+                                                               defaultCapacity: prewarmCount);
 
         // Populate the pool
         var prewarmNetworkObjects = new List<NetworkObject>();
@@ -133,11 +132,13 @@ public class NetworkObjectPool : NetworkBehaviour
 
         void ActionOnGet(NetworkObject networkObject)
         {
+            Debug.Log($"NetObjId: {networkObject.NetworkObjectId}, SetActive TRUE");
             networkObject.gameObject.SetActive(true);
         }
 
         void ActionOnRelease(NetworkObject networkObject)
         {
+            Debug.Log($"NetObjId: {networkObject.NetworkObjectId}, SetActive FALSE");
             networkObject.gameObject.SetActive(false);
         }
 
