@@ -94,8 +94,6 @@ public class CharacterView : NetworkBehaviour
 
     public void InitializeVisuals()
     {
-        Debug.Log($"InitializeVisuals RPC executed on clientId: {NetworkManager.Singleton.LocalClient.ClientId}");
-        
         _dissolveValue = 1;
         _skinnedMeshRenderer.material.SetFloat(_dissolve, _dissolveValue);
         _dissolveFlag = false;
@@ -106,9 +104,6 @@ public class CharacterView : NetworkBehaviour
         base.OnNetworkSpawn();
         
         GameController.Singleton.Characters.Add(NetworkObjectId, this);
-
-        Debug.Log($"CharacterView OnNetworkSpawn called on {(NetworkManager.Singleton.IsHost ? "HOST" : "CLIENT")}, "
-                  + $"NetworkObjectId: {NetworkObjectId}");
     }
 
     void Update()
