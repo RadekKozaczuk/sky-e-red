@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Netcode;
@@ -25,6 +26,11 @@ public class GameController : NetworkBehaviour
     public GameData GameData;
     public CharacterData[] CharacterData;
 
+    /// <summary>
+    /// Object may not yet be present at the time of sending the message.
+    /// </summary>
+    readonly List<(ulong, bool)> _pendingActivations = new();
+    
     /// <summary>
     /// Uses for movement vector quantization.
     /// </summary>
@@ -71,7 +77,22 @@ public class GameController : NetworkBehaviour
             _idToPlayerId.Add(clientId, (view.NetworkObjectId, playerId));
         };   
     }
-    
+
+    void Update()
+    {
+        for (int i = 0; i < _pendingActivations.Count; i++)
+        {
+            (ulong networkObjectId, bool active) = _pendingActivations[i];
+            // ReSharper disable once InvertIf
+            if (_characters.TryGetValue(networkObjectId, out CharacterView view))
+            {
+                view.gameObject.SetActive(active);
+                _pendingActivations.RemoveAt(i);
+                --i;
+            }
+        }
+    }
+
     public void AddCharacter(ulong networkObjectId, CharacterView view) => _characters.Add(networkObjectId, view);
 
     public void Move(Vector2 move)
@@ -170,6 +191,7 @@ public class GameController : NetworkBehaviour
     CharacterView SpawnCharacter(Vector3 pos, Quaternion rot, CharacterData data)
     {
         NetworkObject netObject = NetworkObjectPool.Singleton.GetNetworkObject(data.Prefab.gameObject, pos, rot);
+        CharacterSetActiveRpc(netObject.NetworkObjectId, true);
         var view = netObject.GetComponent<CharacterView>();
 
         // spawn over the network
@@ -190,5 +212,8 @@ public class GameController : NetworkBehaviour
     
     [Rpc(SendTo.NotMe)]
     void InitializeRpc(ulong networkObjectId) => _characters[networkObjectId].InitializeVisuals();
+    
+    [Rpc(SendTo.NotMe)]
+    public void CharacterSetActiveRpc(ulong networkObjectId, bool active) => _pendingActivations.Add((networkObjectId, active));
 }
 

@@ -55,33 +55,29 @@ public class CharacterView : NetworkBehaviour
 
     Character _character;
     Quaternion _rotation = Quaternion.identity;
-    static int _idCounter;
+    float _dissolveValue;
+    bool _dissolveFlag;
+    float _speed;
 
     // Cache hash values
     static readonly int _idleState = Animator.StringToHash("Base Layer.idle");
     static readonly int _moveState = Animator.StringToHash("Base Layer.move");
     static readonly int _surprisedState = Animator.StringToHash("Base Layer.surprised");
     static readonly int _attackState = Animator.StringToHash("Base Layer.attack_shift");
-    static readonly int _dissolveState = Animator.StringToHash("Base Layer.dissolve");
     static readonly int _attackTag = Animator.StringToHash("Attack");
     static readonly int _dissolveTag = Animator.StringToHash("Dissolve");
 
     static readonly int _dissolve = Shader.PropertyToID("_Dissolve");
-    static readonly string _dissolve_name = "ghost_dissolve";
+    const string DissolveAnimationName = "ghost_dissolve";
 
     // dissolve
     [SerializeField]
     SkinnedMeshRenderer _skinnedMeshRenderer;
 
-    float _dissolveValue;
-    bool _dissolveFlag;
-
     // order of execution
     // when dynamically spawned: Awake -> OnNetworkSpawn -> Start
     // when in-Scene placed:     Awake -> Start -> OnNetworkSpawn
 
-    float _speed;
-    
     bool DissolveStateChange
     {
         get => _dissolveStateChange;
@@ -99,6 +95,8 @@ public class CharacterView : NetworkBehaviour
             {
                 GameObject prefab = GameController.Singleton.CharacterData[(int)_character].Prefab.gameObject; 
                 NetworkObjectPool.Singleton.ReturnNetworkObject(NetworkObject, prefab);
+
+                GameController.Singleton.CharacterSetActiveRpc(NetworkObject.NetworkObjectId, false);
             }
         }
     }
@@ -151,7 +149,7 @@ public class CharacterView : NetworkBehaviour
             return;
 
         AnimatorClipInfo clip = clips[0];
-        DissolveStateChange = clip.clip.name.Equals(_dissolve_name);
+        DissolveStateChange = clip.clip.name.Equals(DissolveAnimationName);
     }
 
     /// <summary>
@@ -177,20 +175,4 @@ public class CharacterView : NetworkBehaviour
         _animator.CrossFade(_surprisedState, 0.1f, 0, 0);
         Hp--;
     }
-
-    /*void Respawn()
-    {
-        // player HP
-        Hp = MaxHp;
-
-        transform.position = new Vector3(0, -0.7f, 0);              // player position
-        transform.rotation = Quaternion.Euler(new Vector3(0, -180, 0)); // player facing
-
-        // reset Dissolve
-        _dissolveValue = 1;
-        _skinnedMeshRenderer.material.SetFloat(_dissolve, _dissolveValue);
-
-        // reset animation
-        _animator.CrossFade(_idleState, 0.1f, 0, 0);
-    }*/
 }

@@ -115,8 +115,8 @@ public class NetworkObjectPool : NetworkBehaviour
         for (int i = 0; i < prewarmCount; i++)
         {
             ObjectPool<NetworkObject> pool = _pooledObjects[prefab];
-            NetworkObject netObj = pool.Get();
-            prewarmNetworkObjects.Add(netObj);
+            NetworkObject netObject = pool.Get();
+            prewarmNetworkObjects.Add(netObject);
         }
 
         foreach (NetworkObject networkObject in prewarmNetworkObjects)
