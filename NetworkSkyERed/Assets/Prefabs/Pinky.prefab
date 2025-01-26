@@ -492,11 +492,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
-  PlayerId: 0
   _animator: {fileID: 5912559841802050559}
   _skinnedMeshRenderer: {fileID: 8894493013423258749}
-  MaxHp: 3
-  Speed: 4
 --- !u!95 &5912559841802050559
 Animator:
   serializedVersion: 7
@@ -553,7 +550,7 @@ MonoBehaviour:
   UseHalfFloatPrecision: 0
   InLocalSpace: 0
   SwitchTransformSpaceWhenParented: 0
-  Interpolate: 1
+  Interpolate: 0
   SlerpPosition: 0
 --- !u!114 &4343001264767003281
 MonoBehaviour:

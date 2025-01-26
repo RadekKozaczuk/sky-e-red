@@ -20,12 +20,14 @@ public class GameController : NetworkBehaviour
     /// <summary>
     /// The Character the player is currently using.
     /// </summary>
-    readonly CharacterView[] _characters = new CharacterView[Enum.GetValues(typeof(PlayerId)).Length];
+    public readonly CharacterView[] _characters = new CharacterView[Enum.GetValues(typeof(PlayerId)).Length];
     
     /// <summary>
     /// These characters will be destroyed soon.
     /// </summary>
     readonly Dictionary<PlayerId, List<CharacterView>> _deadCharacters = new();
+
+    public readonly List<CharacterView> Characters = new();
 
     [SerializeField]
     GameData _gameData;
@@ -63,16 +65,7 @@ public class GameController : NetworkBehaviour
             
             // initially always spawn the first character
             CharacterData data = _characterData[(int)player.CurrentCharacter];
-            CharacterView character = Instantiate(
-                data.Prefab,
-                new Vector3(0, -0.7f, 0),
-                Quaternion.Euler(0, 180, 0));
-
-            character.Initialize(playerId, data);
-            
-            // spawn over the network
-            character.NetworkObject.SpawnWithOwnership(NetworkManager.Singleton.LocalClient.ClientId);
-
+            CharacterView character = SpawnCharacter(playerId, new Vector3(0, -0.7f, 0), Quaternion.Euler(0, 180f, 0), data);
             _characters[(int)playerId] = character;
         };   
     }
@@ -121,24 +114,20 @@ public class GameController : NetworkBehaviour
             ChangeCharacterRpc((byte)id);
     }
 
-    public void OnCharacterDeath(PlayerId playerId, int characterId)
+    public void OnCharacterDeath(PlayerId playerId, ulong networkObjectId)
     {
         if (!NetworkManager.Singleton.IsHost)
             return;
 
         List<CharacterView> list = _deadCharacters[playerId];
         
-        int index = list.FindIndex(c => c.Id == characterId);
-        uint tickRate = NetworkManager.Singleton.NetworkTickSystem.TickRate;
+        int index = list.FindIndex(c => c.NetworkObjectId == networkObjectId);
         
         CharacterView view = list[index];
-        //float defer = _characterData[(int)view.Character].DissolveAnimationLength * tickRate;
-        //list[index].NetworkObject.DeferredDespawnTick = (int)defer;
-        list[index].NetworkObject.Despawn();
-        //list[index].NetworkObject.DeferDespawn((int)defer);
+        CharacterData data = _characterData[(int)view.Character];
+        NetworkObjectPool.Singleton.ReturnNetworkObject(view.NetworkObject, data.Prefab.gameObject);
         
         // todo: animation should start with delay and fast forward
-        
         list.RemoveAt(index);
     }
     
@@ -191,14 +180,42 @@ public class GameController : NetworkBehaviour
         // initially always spawn the first character
         Transform t = previous.transform;
         CharacterData data = _characterData[(int)model.CurrentCharacter];
-        CharacterView nextCharacter = Instantiate(data.Prefab, t.position, t.rotation);
-        nextCharacter.Initialize(playerId, data);
-        nextCharacter.MovementVector = previous.MovementVector;
+        
+        CharacterView character = SpawnCharacter(playerId, t.position, t.rotation, data);
+        character.MovementVector = previous.MovementVector;
         previous.MovementVector = Vector2.zero;
         
+        _characters[(int)playerId] = character;
+    }
+    
+    CharacterView SpawnCharacter(PlayerId playerId, Vector3 pos, Quaternion rot, CharacterData data)
+    {
+        NetworkObject netObject = NetworkObjectPool.Singleton.GetNetworkObject(data.Prefab.gameObject, pos, rot);
+        var character = netObject.GetComponent<CharacterView>();
+
+        character.Initialize(playerId, data);
+        character.InitializeVisuals();
+        
+        // send info to everybody else
+        InitializeRpc(netObject.NetworkObjectId);
+
+        // todo: dunno how to use container
+        //character.NetworkObject.TrySetParent(SceneReferenceHolder.CharacterContainer);
+            
         // spawn over the network
-        nextCharacter.NetworkObject.SpawnWithOwnership(NetworkManager.Singleton.LocalClient.ClientId);
-        _characters[(int)playerId] = nextCharacter;
+        if (!character.IsSpawned)
+            netObject.SpawnWithOwnership(NetworkManager.Singleton.LocalClient.ClientId);
+
+        return character;
+    }
+    
+    [Rpc(SendTo.NotMe)]
+    void InitializeRpc(ulong networkObjectId)
+    {
+        Debug.Log($"Initialize RPC executed on clientId: {NetworkManager.Singleton.LocalClient.ClientId}, networkObjectId: {networkObjectId}");
+
+        CharacterView character = Characters.First(c => c.NetworkObjectId == networkObjectId);
+        character.InitializeVisuals();
     }
 }
 

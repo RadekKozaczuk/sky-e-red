@@ -16,7 +16,7 @@ namespace AnimationBehaviours
         public override void OnStateExit(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
         {
             var view = animator.gameObject.GetComponent<CharacterView>();
-            GameController.Singleton.OnCharacterDeath(view.PlayerId, view.Id);
+            GameController.Singleton.OnCharacterDeath(view.PlayerId, view.NetworkObjectId);
         }
     }
 }
