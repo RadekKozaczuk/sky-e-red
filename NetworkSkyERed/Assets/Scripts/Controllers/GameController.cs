@@ -81,14 +81,22 @@ public class GameController : NetworkBehaviour
     public void Move(Vector2 move)
     {
         ulong id = NetworkManager.Singleton.LocalClientId;
-
+        
         if (NetworkManager.Singleton.IsHost)
         {
             PlayerId playerId = _idToPlayerId[id];
-            _characters[(int)playerId].SetMovementVector(move);
+            _characters[(int)playerId].MovementVector = move;
         }
         else
-            MoveRpc((byte)id, move);
+        {
+            float angle = move.magnitude > 0 
+                ? Mathf.Atan2(move.x, move.y) * Mathf.Rad2Deg
+                : -1f;
+
+            ushort quantified = Mathf.FloatToHalf(angle);
+
+            MoveRpc((byte)id, quantified);
+        }
     }
     
     public void Attack()
@@ -137,11 +145,23 @@ public class GameController : NetworkBehaviour
     
     [Rpc(SendTo.Server)]
     // ReSharper disable once MemberCanBeMadeStatic.Local
-    void MoveRpc(byte clientId, Vector2 move)
+    void MoveRpc(byte clientId, ushort move)
     {
-        Debug.Log($"Received Move RPC from clientId: {clientId}");
         PlayerId playerId = _idToPlayerId[clientId];
-        _characters[(int)playerId].SetMovementVector(move);
+
+        CharacterView character = _characters[(int)playerId];
+        float angle = Mathf.HalfToFloat(move);
+
+        if (Mathf.Approximately(angle, -1f))
+        {
+            character.MovementVector = Vector2.zero;
+        }
+        else
+        {
+            float radians = angle * Mathf.Deg2Rad;
+            var moveVector = new Vector2(Mathf.Sin(radians), Mathf.Cos(radians));
+            character.MovementVector = moveVector;
+        }
     }
     
     [Rpc(SendTo.Server)]
@@ -174,6 +194,8 @@ public class GameController : NetworkBehaviour
         CharacterData data = _characterData[(int)model.CurrentCharacter];
         CharacterView nextCharacter = Instantiate(data.Prefab, t.position, t.rotation);
         nextCharacter.Initialize(playerId, data);
+        nextCharacter.MovementVector = previous.MovementVector;
+        previous.MovementVector = Vector2.zero;
         
         // spawn over the network
         nextCharacter.NetworkObject.SpawnWithOwnership(NetworkManager.Singleton.LocalClient.ClientId);

@@ -1,5 +1,6 @@
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.Assertions;
 using UnityEngine.Rendering;
 
 public class CharacterView : NetworkBehaviour
@@ -8,8 +9,6 @@ public class CharacterView : NetworkBehaviour
     public Character Character { get; private set; }
     public PlayerId PlayerId { get; private set; }
 
-    static int _idCounter;
-    
     int Hp
     {
         get => _hp;
@@ -24,8 +23,47 @@ public class CharacterView : NetworkBehaviour
     [SerializeField]
     Animator _animator;
 
-    Vector3 _move = Vector3.zero;
+    public Vector2 MovementVector
+    {
+        get => _move;
+        set
+        {
+            Assert.IsFalse(Mathf.Approximately(_move.x, value.x) && Mathf.Approximately(_move.y, value.y),
+                           "Movement Vector should not be assigned with the same value.");
+            
+            // was not moving
+            if (_move.magnitude == 0)
+            {
+                // movement started
+                if (value.magnitude > 0)
+                {
+                    float angle = Mathf.Atan2(value.x, value.y) * Mathf.Rad2Deg;
+                    _rotation = Quaternion.Euler(0, angle, 0);
+                    
+                    _animator.CrossFade(_moveState, 0.1f, 0, 0);
+                }
+            }
+            // was moving
+            else
+            {
+                // movement stopped
+                if (value.magnitude == 0)
+                    _animator.CrossFade(_idleState, 0.1f, 0, 0);
+                else
+                {
+                    float angle = Mathf.Atan2(value.x, value.y) * Mathf.Rad2Deg;
+                    _rotation = Quaternion.Euler(0, angle, 0);
+                }
+            }
+            
+            _move = value;
+        }
+    } 
+    Vector2 _move = Vector2.zero;
+    
     Quaternion _rotation = Quaternion.identity;
+    
+    static int _idCounter;
 
     // Cache hash values
     static readonly int _idleState = Animator.StringToHash("Base Layer.idle");
@@ -76,7 +114,7 @@ public class CharacterView : NetworkBehaviour
 
         if (_move.magnitude > 0)
         {
-            transform.position += _move * (Time.deltaTime * _speed);
+            transform.position += new Vector3(_move.x, 0f, _move.y) * (Time.deltaTime * _speed);
             transform.rotation = _rotation;
         }
     }
@@ -98,32 +136,6 @@ public class CharacterView : NetworkBehaviour
 
     // play the animation of Attack
     public void Attack() => _animator.CrossFade(_attackState, 0.1f, 0, 0);
-
-    /// <summary>
-    /// Last change of the movement vector.
-    /// Meaning that if you want the character to stop you have to send <see cref="Vector2.zero"/>.
-    /// </summary>
-    public void SetMovementVector(Vector2 move)
-    {
-        // was not moving
-        if (_move.magnitude == 0)
-        {
-            // movement started
-            if (move.magnitude > 0)
-                _animator.CrossFade(_moveState, 0.1f, 0, 0);
-        }
-        // was moving
-        else
-        {
-            // movement stopped
-            if (move.magnitude == 0)
-                _animator.CrossFade(_idleState, 0.1f, 0, 0);
-        }
-
-        _move = new Vector3(move.x, 0f, move.y);
-        float angle = Mathf.Atan2(move.x, move.y) * Mathf.Rad2Deg;
-        _rotation = Quaternion.Euler(0, angle, 0);
-    }
 
     void Damage()
     {
