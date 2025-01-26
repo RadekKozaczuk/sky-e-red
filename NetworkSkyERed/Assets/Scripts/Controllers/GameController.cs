@@ -18,7 +18,6 @@ public class GameController : NetworkBehaviour
     readonly Dictionary<ulong, PlayerId> _idToPlayerId = new();
 
     readonly CharacterView[] _characters = new CharacterView[Enum.GetValues(typeof(PlayerId)).Length];
-    
     public readonly Dictionary<ulong, CharacterView> Characters = new();
 
     [SerializeField]
@@ -56,8 +55,8 @@ public class GameController : NetworkBehaviour
             
             // initially always spawn the first character
             CharacterData data = _characterData[(int)player.CurrentCharacter];
-            CharacterView character = SpawnCharacter(playerId, new Vector3(0, -0.7f, 0), Quaternion.Euler(0, 180f, 0), data);
-            _characters[(int)playerId] = character;
+            CharacterView view = SpawnCharacter(playerId, new Vector3(0, -0.7f, 0), Quaternion.Euler(0, 180f, 0), data);
+            _characters[(int)playerId] = view;
         };   
     }
 
@@ -72,12 +71,11 @@ public class GameController : NetworkBehaviour
         }
         else
         {
-            float angle = move.magnitude > 0 
+            float angle = move.magnitude > 0
                 ? Mathf.Atan2(move.x, move.y) * Mathf.Rad2Deg
                 : -1f;
 
             ushort quantified = Mathf.FloatToHalf(angle);
-
             MoveRpc((byte)id, quantified);
         }
     }
@@ -164,39 +162,38 @@ public class GameController : NetworkBehaviour
         Transform t = previous.transform;
         CharacterData data = _characterData[(int)model.CurrentCharacter];
         
-        CharacterView character = SpawnCharacter(playerId, t.position, t.rotation, data);
-        character.MovementVector = previous.MovementVector;
+        CharacterView next = SpawnCharacter(playerId, t.position, t.rotation, data);
+        next.MovementVector = previous.MovementVector;
         previous.MovementVector = Vector2.zero;
         
-        _characters[(int)playerId] = character;
+        _characters[(int)playerId] = next;
     }
     
     CharacterView SpawnCharacter(PlayerId playerId, Vector3 pos, Quaternion rot, CharacterData data)
     {
         NetworkObject netObject = NetworkObjectPool.Singleton.GetNetworkObject(data.Prefab.gameObject, pos, rot);
-        var character = netObject.GetComponent<CharacterView>();
+        var view = netObject.GetComponent<CharacterView>();
 
         // spawn over the network
-        if (!character.IsSpawned)
+        if (!view.IsSpawned)
         {
             netObject.SpawnWithOwnership(NetworkManager.Singleton.LocalClient.ClientId);
-            character.NetworkObject.TrySetParent(SceneReferenceHolder.CharacterContainer);
+            netObject.TrySetParent(SceneReferenceHolder.CharacterContainer);
         }
 
-        character.Initialize(playerId, data);
-        character.InitializeVisuals();
+        view.Initialize(playerId, data);
+        view.InitializeVisuals();
         
         // send info to everybody else
         InitializeRpc(netObject.NetworkObjectId);
 
-        return character;
+        return view;
     }
     
     [Rpc(SendTo.NotMe)]
     void InitializeRpc(ulong networkObjectId)
     {
-        CharacterView character = Characters[networkObjectId];
-        character.InitializeVisuals();
+        Characters[networkObjectId].InitializeVisuals();
     }
 }
 
