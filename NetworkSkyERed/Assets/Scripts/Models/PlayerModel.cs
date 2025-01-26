@@ -23,16 +23,6 @@ public class PlayerModel
         _currentCharacterIndex = 0;
     }
 
-    public void NextCharacter()
-    {
-        Assert.IsTrue(_characters.Count > 1, "It is impossible to change characters if there is only one left.");
-
-        if (_currentCharacterIndex == _characters.Count - 1)
-            _currentCharacterIndex = 0;
-        else
-            _currentCharacterIndex++;
-    }
-
     public void ChangeCharacter()
     {
         if (_currentCharacterIndex == _characters.Count - 1)

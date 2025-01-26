@@ -27,7 +27,6 @@ public class GameController : NetworkBehaviour
     /// </summary>
     readonly Dictionary<PlayerId, List<CharacterView>> _deadCharacters = new();
 
-    // configuration
     [SerializeField]
     GameData _gameData;
 

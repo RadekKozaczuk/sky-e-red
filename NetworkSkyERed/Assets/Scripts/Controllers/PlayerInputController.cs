@@ -44,34 +44,26 @@ class PlayerInputController : MonoBehaviour
             GameController.Singleton.Move(Vector2.zero);
         };
 
+        // attack actions
         _attackAction = gameplay.FindAction(Attack);
-
-        // player attack actions
-        _attackAction.performed += _ =>
-        {
-            GameController.Singleton.Attack();
-        };
+        _attackAction.performed += _ => GameController.Singleton.Attack();
         
+        // change character actions
         _changeCharacter = gameplay.FindAction(ChangeCharacter);
-
-        // player attack actions
-        _changeCharacter.performed += _ =>
-        {
-            GameController.Singleton.ChangeCharacter();
-        };
+        _changeCharacter.performed += _ => GameController.Singleton.ChangeCharacter();
     }
 
     void Update()
     {
-        if (_movementDown)
-        {
-            var move = _movementAction.ReadValue<Vector2>();
-            
-            // send information only when it's different
-            if (move != _lastMovement)
-                GameController.Singleton.Move(move);
+        if (!_movementDown)
+            return;
 
-            _lastMovement = move;
-        }
+        var move = _movementAction.ReadValue<Vector2>();
+            
+        // send information only when it's different
+        if (move != _lastMovement)
+            GameController.Singleton.Move(move);
+
+        _lastMovement = move;
     }
 }

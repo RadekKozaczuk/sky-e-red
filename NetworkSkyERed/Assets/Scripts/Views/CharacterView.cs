@@ -6,7 +6,6 @@ using UnityEngine.Rendering;
 public class CharacterView : NetworkBehaviour
 {
     public int Id { get; private set; }
-    public Character Character { get; private set; }
     public PlayerId PlayerId { get; private set; }
 
     int Hp
@@ -28,9 +27,6 @@ public class CharacterView : NetworkBehaviour
         get => _move;
         set
         {
-            Assert.IsFalse(Mathf.Approximately(_move.x, value.x) && Mathf.Approximately(_move.y, value.y),
-                           "Movement Vector should not be assigned with the same value.");
-            
             // was not moving
             if (_move.magnitude == 0)
             {
@@ -62,7 +58,6 @@ public class CharacterView : NetworkBehaviour
     Vector2 _move = Vector2.zero;
     
     Quaternion _rotation = Quaternion.identity;
-    
     static int _idCounter;
 
     // Cache hash values
@@ -92,7 +87,6 @@ public class CharacterView : NetworkBehaviour
     
     public void Initialize(PlayerId playerId, CharacterData data)
     {
-        Character = data.Character;
         PlayerId = playerId;
         Hp = data.MaxHp;
         _speed = data.Speed;
