@@ -4,7 +4,6 @@ using UnityEngine.Rendering;
 
 public class CharacterView : NetworkBehaviour
 {
-    //public int Id { get; private set; }
     public Character Character { get; private set; }
     public PlayerId PlayerId { get; private set; }
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 public class GameController : NetworkBehaviour
 {
@@ -105,9 +106,8 @@ public class GameController : NetworkBehaviour
 
     public void OnCharacterDeath(ulong networkObjectId)
     {
-        if (!NetworkManager.Singleton.IsHost)
-            return;
-
+        Assert.IsTrue(NetworkManager.Singleton.IsHost, "OnCharacterDeath should not be called on Client machines.");
+        
         CharacterView view = Characters[networkObjectId];
         CharacterData data = _characterData[(int)view.Character];
         NetworkObjectPool.Singleton.ReturnNetworkObject(view.NetworkObject, data.Prefab.gameObject);
@@ -144,10 +144,7 @@ public class GameController : NetworkBehaviour
 
     [Rpc(SendTo.Server)]
     // ReSharper disable once MemberCanBeMadeStatic.Local
-    void ChangeCharacterRpc(byte clientId)
-    {
-        ChangeCharacterLogic(clientId);
-    }
+    void ChangeCharacterRpc(byte clientId) => ChangeCharacterLogic(clientId);
 
     void ChangeCharacterLogic(ulong id)
     {
@@ -191,9 +188,6 @@ public class GameController : NetworkBehaviour
     }
     
     [Rpc(SendTo.NotMe)]
-    void InitializeRpc(ulong networkObjectId)
-    {
-        Characters[networkObjectId].InitializeVisuals();
-    }
+    void InitializeRpc(ulong networkObjectId) => Characters[networkObjectId].InitializeVisuals();
 }
 

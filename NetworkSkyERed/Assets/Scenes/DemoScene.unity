@@ -461,7 +461,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 29.85
+  m_fontSize: 27.4
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -700,13 +700,13 @@ MonoBehaviour:
   DeferredDespawnTick: 0
   Ownership: 1
   AlwaysReplicateAsRoot: 0
-  SynchronizeTransform: 1
+  SynchronizeTransform: 0
   ActiveSceneSynchronization: 0
   SceneMigrationSynchronization: 1
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
-  AutoObjectParentSync: 1
-  SyncOwnerTransformWhenParented: 1
+  AutoObjectParentSync: 0
+  SyncOwnerTransformWhenParented: 0
   AllowOwnerToParent: 0
 --- !u!114 &386280258
 MonoBehaviour:
@@ -723,11 +723,11 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   PooledPrefabsList:
   - Prefab: {fileID: 5094875395090503332, guid: 71fed29e0b5668b4a9e99fe07c77e6ad, type: 3}
-    PrewarmCount: 2
+    PrewarmCount: 0
   - Prefab: {fileID: 5094875395090503332, guid: fd03ae02ff4573c459a85d733c55663e, type: 3}
-    PrewarmCount: 2
+    PrewarmCount: 0
   - Prefab: {fileID: 5094875395090503332, guid: 4d26db7fa4a9a14488bf1009e7d4bce9, type: 3}
-    PrewarmCount: 2
+    PrewarmCount: 0
 --- !u!4 &386280259
 Transform:
   m_ObjectHideFlags: 0
@@ -908,7 +908,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 18.15
+  m_fontSize: 18
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1

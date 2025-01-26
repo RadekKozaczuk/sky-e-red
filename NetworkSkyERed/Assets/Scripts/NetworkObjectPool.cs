@@ -106,18 +106,21 @@ public class NetworkObjectPool : NetworkBehaviour
         _prefabs.Add(prefab);
 
         // Create the pool
-        _pooledObjects[prefab] = new ObjectPool<NetworkObject>(CreateFunc, ActionOnGet, ActionOnRelease, ActionOnDestroy, defaultCapacity: prewarmCount);
+        _pooledObjects[prefab] = new ObjectPool<NetworkObject>(CreateFunc, ActionOnGet, ActionOnRelease, ActionOnDestroy, 
+                                                               defaultCapacity: prewarmCount, 
+                                                               maxSize: Enum.GetValues(typeof(PlayerId)).Length * 2);
 
         // Populate the pool
         var prewarmNetworkObjects = new List<NetworkObject>();
         for (int i = 0; i < prewarmCount; i++)
         {
-            prewarmNetworkObjects.Add(_pooledObjects[prefab].Get());
+            ObjectPool<NetworkObject> pool = _pooledObjects[prefab];
+            NetworkObject netObj = pool.Get();
+            prewarmNetworkObjects.Add(netObj);
         }
+
         foreach (NetworkObject networkObject in prewarmNetworkObjects)
-        {
             _pooledObjects[prefab].Release(networkObject);
-        }
 
         // Register Netcode Spawn handlers
         NetworkManager.Singleton.PrefabHandler.AddHandler(prefab, new PooledPrefabInstanceHandler(prefab, this));

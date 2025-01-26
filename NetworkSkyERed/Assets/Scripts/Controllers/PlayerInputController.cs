@@ -35,7 +35,6 @@ class PlayerInputController : MonoBehaviour
                 return;
 
             _movementDown = true;
-
         };
 
         _movementAction.canceled += _ =>
