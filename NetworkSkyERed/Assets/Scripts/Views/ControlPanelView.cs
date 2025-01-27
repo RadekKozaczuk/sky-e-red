@@ -16,13 +16,7 @@ public class ControlPanelView : MonoBehaviour
         _join.onClick.AddListener(Join);
     }
 
-    static void StartHost()
-    {
-        NetworkManager.Singleton.StartHost();
-    }
+    static void StartHost() => NetworkManager.Singleton.StartHost();
 
-    static void Join()
-    {
-        NetworkManager.Singleton.StartClient();
-    }
+    static void Join() => NetworkManager.Singleton.StartClient();
 }

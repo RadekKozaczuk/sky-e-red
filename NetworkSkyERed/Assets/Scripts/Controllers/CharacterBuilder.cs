@@ -2,10 +2,10 @@
 
 class PlayerBuilder
 {
-	public PlayerModel Player => _player ??= new PlayerModel(_characters, _hpValues);
+	public PlayerModel Model => _model ??= new PlayerModel(_characters, _hpValues);
 
 	// the object we're going to build
-	PlayerModel _player;
+	PlayerModel _model;
 
 	readonly List<Character> _characters = new();
 	readonly List<int> _hpValues = new();

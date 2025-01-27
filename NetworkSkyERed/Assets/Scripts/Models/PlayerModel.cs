@@ -2,8 +2,6 @@
 
 public class PlayerModel
 {
-    public bool CanChangeCharacter => true; // todo: use later
-    
     public Character CurrentCharacter => _characters[_currentCharacterIndex];
     
     /// <summary>

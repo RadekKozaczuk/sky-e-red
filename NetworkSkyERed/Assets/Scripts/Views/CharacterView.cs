@@ -4,17 +4,6 @@ using UnityEngine.Rendering;
 
 public class CharacterView : NetworkBehaviour
 {
-    int Hp
-    {
-        get => _hp;
-        set
-        {
-            _hp = value;
-            SceneReferenceHolder.Hp.SetHp(_hp);
-        }
-    }
-    int _hp;
-    
     public Vector2 MovementVector
     {
         get => _move;
@@ -105,7 +94,6 @@ public class CharacterView : NetworkBehaviour
     public void Initialize(CharacterData data)
     {
         _character = data.Character;
-        Hp = data.MaxHp;
         _speed = data.Speed;
     }
 
@@ -138,10 +126,10 @@ public class CharacterView : NetworkBehaviour
             transform.rotation = _rotation;
         }
         
-        Status();
+        DissolveStatusUpdate();
     }
     
-    void Status()
+    void DissolveStatusUpdate()
     {
         AnimatorClipInfo[] clips = _animator.GetCurrentAnimatorClipInfo(0);
 
@@ -173,6 +161,5 @@ public class CharacterView : NetworkBehaviour
     void Damage()
     {
         _animator.CrossFade(_surprisedState, 0.1f, 0, 0);
-        Hp--;
     }
 }

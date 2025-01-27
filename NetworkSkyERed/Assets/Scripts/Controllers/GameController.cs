@@ -6,8 +6,12 @@ using UnityEngine;
 public class GameController : NetworkBehaviour
 {
     public static GameController Singleton;
+    
+    public GameData GameData;
+    public CharacterData[] CharacterData;
+    public NetworkVariable<ushort> FirstPlayerCurrentHp = new();
+    public NetworkVariable<ushort> SecondPlayerCurrentHp = new();
 
-    // runtime
     readonly Dictionary<PlayerId, PlayerModel> _playersModels = new();
 
     /// <summary>
@@ -21,9 +25,6 @@ public class GameController : NetworkBehaviour
     /// Value: CharacterView
     /// </summary>
     readonly Dictionary<ulong, CharacterView> _characters = new();
-
-    public GameData GameData;
-    public CharacterData[] CharacterData;
 
     /// <summary>
     /// Object may not yet be present at the time of sending the message.
@@ -65,25 +66,24 @@ public class GameController : NetworkBehaviour
             }
             
             // builder patten
-            var builder = new PlayerBuilder();
+            var player = new PlayerBuilder();
             CharacterData data;
             
             foreach (Character character in list)
             {
                 data = CharacterData[(int)character];
-                builder.HasCharacter(character)
-                       .WithHp(data.MaxHp)
-                       .WithDamage(data.Damage)
-                       .WithSpeed(data.Speed);
+                player.HasCharacter(character)
+                      .WithHp(data.MaxHp)
+                      .WithDamage(data.Damage)
+                      .WithSpeed(data.Speed);
             }
 
-            PlayerModel player = builder.Player;
-            _playersModels.Add(playerId, player);
+            _playersModels.Add(playerId, player.Model);
 
             // initially always spawn the first character
             var position = new Vector3(spawnPos.x, GameData.DefaultPositionYOffset, spawnPos.y);
             Quaternion rotation = Quaternion.Euler(0, GameData.DefaultSpawnRotation, 0);
-            data = CharacterData[(int)player.CurrentCharacter];
+            data = CharacterData[(int)player.Model.CurrentCharacter];
 
             CharacterView view = SpawnCharacter(position, rotation, data);
             _idToPlayerId.Add(clientId, (view.NetworkObjectId, playerId));
@@ -92,6 +92,7 @@ public class GameController : NetworkBehaviour
 
     void Update()
     {
+        // in rare scenarios game objects may not be yet replicated on clients at the moment of receiving a CharacterSetActiveRpc call 
         for (int i = 0; i < _pendingActivations.Count; i++)
         {
             (ulong networkObjectId, bool active) = _pendingActivations[i];
@@ -103,6 +104,18 @@ public class GameController : NetworkBehaviour
                 --i;
             }
         }
+
+        // update hp
+        if (NetworkManager.Singleton.IsHost)
+        {
+            if (_playersModels.TryGetValue(PlayerId.FirstPlayer, out PlayerModel model))
+                FirstPlayerCurrentHp.Value = (ushort)model.CurrentHp;
+            
+            if (_playersModels.TryGetValue(PlayerId.SecondPlayer, out model))
+                SecondPlayerCurrentHp.Value = (ushort)model.CurrentHp;
+        }
+        
+        SceneReferenceHolder.Hp.SetHp(FirstPlayerCurrentHp.Value);
     }
 
     public void AddCharacter(ulong networkObjectId, CharacterView view) => _characters.Add(networkObjectId, view);
@@ -146,7 +159,13 @@ public class GameController : NetworkBehaviour
         else
             ChangeCharacterRpc((byte)id);
     }
+    
+    [Rpc(SendTo.NotMe)]
+    public void CharacterSetActiveRpc(ulong networkObjectId, bool active) => _pendingActivations.Add((networkObjectId, active));
 
+    [Rpc(SendTo.NotMe)]
+    void InitializeRpc(ulong networkObjectId) => _characters[networkObjectId].InitializeVisuals();
+    
     [Rpc(SendTo.Server)]
     // ReSharper disable once MemberCanBeMadeStatic.Local
     void MoveRpc(byte clientId, ushort move)
@@ -221,11 +240,5 @@ public class GameController : NetworkBehaviour
 
         return view;
     }
-    
-    [Rpc(SendTo.NotMe)]
-    void InitializeRpc(ulong networkObjectId) => _characters[networkObjectId].InitializeVisuals();
-    
-    [Rpc(SendTo.NotMe)]
-    public void CharacterSetActiveRpc(ulong networkObjectId, bool active) => _pendingActivations.Add((networkObjectId, active));
 }
 
