@@ -164,7 +164,7 @@ public class GameController : NetworkBehaviour
     public void CharacterSetActiveRpc(ulong networkObjectId, bool active) => _pendingActivations.Add((networkObjectId, active));
 
     [Rpc(SendTo.NotMe)]
-    void InitializeRpc(ulong networkObjectId) => _characters[networkObjectId].InitializeVisuals();
+    void InitializeVisualsRpc(ulong networkObjectId) => _characters[networkObjectId].InitializeVisuals();
     
     [Rpc(SendTo.Server)]
     // ReSharper disable once MemberCanBeMadeStatic.Local
@@ -236,7 +236,7 @@ public class GameController : NetworkBehaviour
         view.InitializeVisuals();
         
         // send info to everybody else
-        InitializeRpc(netObject.NetworkObjectId);
+        InitializeVisualsRpc(netObject.NetworkObjectId);
 
         return view;
     }
