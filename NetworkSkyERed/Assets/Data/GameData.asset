@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3c1f89a934ea478991627b55d0c2de82, type: 3}
   m_Name: GameData
   m_EditorClassIdentifier: 
-  FirstPlayerStartCharacters: 000000000100000002000000
   FirstPlayerSpawnPosition: {x: -3, y: 0}
-  SecondPlayerStartCharacters: 0200000000000000
+  FirstPlayerStartCharacters: 00000000010000000200000003000000
   SecondPlayerSpawnPosition: {x: 3, y: 0}
-  DefaultPositionYOffset: -0.7
+  SecondPlayerStartCharacters: 020000000000000001000000
+  DefaultPositionYOffset: -1
   DefaultSpawnRotation: 180

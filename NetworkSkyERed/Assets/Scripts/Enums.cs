@@ -6,7 +6,8 @@
 
 public enum Character
 {
-    Bluey,
-    Greeny,
-    Pinky
+    Archer,
+    Megan,
+    Ninja,
+    Remy
 }

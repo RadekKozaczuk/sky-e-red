@@ -11,7 +11,10 @@ public class GameData : ScriptableObject
     public Vector2 SecondPlayerSpawnPosition;
     public Character[] SecondPlayerStartCharacters;
 
+    /// <summary>
+    /// Some models need vertical adjustment so that their feet touch the floor.
+    /// </summary>
     [Space(20f)]
-    public float DefaultPositionYOffset = -0.7f;
+    public float DefaultPositionYOffset = -1f;
     public float DefaultSpawnRotation = 180;
 }
