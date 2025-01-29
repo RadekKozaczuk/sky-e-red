@@ -1,6 +1,5 @@
 using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.Rendering;
 
 public class CharacterView : NetworkBehaviour
 {
@@ -60,8 +59,8 @@ public class CharacterView : NetworkBehaviour
     const string DissolveAnimationName = "ghost_dissolve";
 
     // dissolve
-    [SerializeField]
-    SkinnedMeshRenderer _skinnedMeshRenderer;
+    //[SerializeField]
+    //SkinnedMeshRenderer _skinnedMeshRenderer;
 
     // order of execution
     // when dynamically spawned: Awake -> OnNetworkSpawn -> Start
@@ -100,8 +99,8 @@ public class CharacterView : NetworkBehaviour
     public void InitializeVisuals()
     {
         _dissolveValue = 1;
-        _skinnedMeshRenderer.material.SetFloat(_dissolve, _dissolveValue);
-        _skinnedMeshRenderer.shadowCastingMode = ShadowCastingMode.On;
+        //_skinnedMeshRenderer.material.SetFloat(_dissolve, _dissolveValue);
+        //_skinnedMeshRenderer.shadowCastingMode = ShadowCastingMode.On;
         _dissolveFlag = false;
     }
     
@@ -117,7 +116,7 @@ public class CharacterView : NetworkBehaviour
         if (_dissolveFlag)
         {
             _dissolveValue -= Time.deltaTime;
-            _skinnedMeshRenderer.material.SetFloat(_dissolve, _dissolveValue);
+            //_skinnedMeshRenderer.material.SetFloat(_dissolve, _dissolveValue);
         }
 
         if (_move.magnitude > 0)
@@ -152,7 +151,7 @@ public class CharacterView : NetworkBehaviour
     public void OnDissolveStart()
     {
         _dissolveFlag = true;
-        _skinnedMeshRenderer.shadowCastingMode = ShadowCastingMode.Off;
+        //_skinnedMeshRenderer.shadowCastingMode = ShadowCastingMode.Off;
     }
 
     // play the animation of Attack
