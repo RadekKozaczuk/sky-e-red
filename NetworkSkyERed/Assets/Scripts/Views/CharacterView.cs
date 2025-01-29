@@ -52,13 +52,7 @@ public class CharacterView : NetworkBehaviour
     
     static readonly int _idleState = Animator.StringToHash("Idle");
     static readonly int _walkingState = Animator.StringToHash("Walking");
-
-    //static readonly int _dissolve = Shader.PropertyToID("_Dissolve");
     const string DissolveAnimationName = "Jumping";
-
-    // dissolve
-    //[SerializeField]
-    //SkinnedMeshRenderer _skinnedMeshRenderer;
 
     // order of execution
     // when dynamically spawned: Awake -> OnNetworkSpawn -> Start
@@ -97,8 +91,6 @@ public class CharacterView : NetworkBehaviour
     public void InitializeVisuals()
     {
         _dissolveValue = 1;
-        //_skinnedMeshRenderer.material.SetFloat(_dissolve, _dissolveValue);
-        //_skinnedMeshRenderer.shadowCastingMode = ShadowCastingMode.On;
         _dissolveFlag = false;
     }
     
@@ -114,7 +106,6 @@ public class CharacterView : NetworkBehaviour
         if (_dissolveFlag)
         {
             _dissolveValue -= Time.deltaTime;
-            //_skinnedMeshRenderer.material.SetFloat(_dissolve, _dissolveValue);
         }
 
         if (_move.magnitude > 0)
@@ -148,20 +139,16 @@ public class CharacterView : NetworkBehaviour
 
     public void OnDissolveStart()
     {
-        Debug.Log("On Dissolve start");
         _dissolveFlag = true;
-        //_skinnedMeshRenderer.shadowCastingMode = ShadowCastingMode.Off;
     }
 
     // play the animation of Attack
     public void Attack()
     {
         // todo: nothing for now
-        //_animator.CrossFade(_attackState, 0.1f, 0, 0);
     }
 
     void Damage()
     {
-        //_animator.CrossFade(_surprisedState, 0.1f, 0, 0);
     }
 }
