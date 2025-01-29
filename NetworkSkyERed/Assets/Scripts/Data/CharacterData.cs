@@ -4,7 +4,6 @@
 public class CharacterData : ScriptableObject
 {
     public CharacterView Prefab;
-
     public Character Character;
     
     [Min(1)]
@@ -15,9 +14,4 @@ public class CharacterData : ScriptableObject
     
     [Min(1)]
     public int Damage = 4;
-
-    /// <summary>
-    /// In seconds.
-    /// </summary>
-    public float DissolveAnimationLength;
 }

@@ -12,9 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d7ebae531bc541909501f974ea6e4ef3, type: 3}
   m_Name: Remy
   m_EditorClassIdentifier: 
-  Prefab: {fileID: 8936917951563360176, guid: 1a08f1e8dd8f0a248890904fdcb90082, type: 3}
-  Character: 1
+  Prefab: {fileID: 8936917951563360176, guid: 0a7abefd0d50a4f498712951e871208f, type: 3}
+  Character: 3
   MaxHp: 5
   Speed: 5
   Damage: 4
-  DissolveAnimationLength: 0

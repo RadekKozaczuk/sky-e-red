@@ -13,8 +13,7 @@ MonoBehaviour:
   m_Name: Megan
   m_EditorClassIdentifier: 
   Prefab: {fileID: 8936917951563360176, guid: 2a578223a637f4d47b5821da5292fe24, type: 3}
-  Character: 2
+  Character: 1
   MaxHp: 3
   Speed: 7
   Damage: 7
-  DissolveAnimationLength: 0

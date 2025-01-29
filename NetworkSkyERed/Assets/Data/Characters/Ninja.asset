@@ -13,8 +13,7 @@ MonoBehaviour:
   m_Name: Ninja
   m_EditorClassIdentifier: 
   Prefab: {fileID: 8936917951563360176, guid: 1a08f1e8dd8f0a248890904fdcb90082, type: 3}
-  Character: 1
+  Character: 2
   MaxHp: 5
   Speed: 5
   Damage: 4
-  DissolveAnimationLength: 0

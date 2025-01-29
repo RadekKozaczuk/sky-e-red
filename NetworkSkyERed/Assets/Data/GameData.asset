@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: GameData
   m_EditorClassIdentifier: 
   FirstPlayerSpawnPosition: {x: -3, y: 0}
-  FirstPlayerStartCharacters: 000000000100000002000000
+  FirstPlayerStartCharacters: 00000000010000000200000003000000
   SecondPlayerSpawnPosition: {x: 3, y: 0}
-  SecondPlayerStartCharacters: 0200000000000000
+  SecondPlayerStartCharacters: 020000000000000001000000
   DefaultPositionYOffset: -1
   DefaultSpawnRotation: 180
