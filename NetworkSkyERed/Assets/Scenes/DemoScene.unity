@@ -461,7 +461,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 31.3
+  m_fontSize: 31.4
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -728,6 +728,8 @@ MonoBehaviour:
     PrewarmCount: 0
   - Prefab: {fileID: 7944467626874797790, guid: 1a08f1e8dd8f0a248890904fdcb90082, type: 3}
     PrewarmCount: 0
+  - Prefab: {fileID: 7944467626874797790, guid: 0a7abefd0d50a4f498712951e871208f, type: 3}
+    PrewarmCount: 0
 --- !u!4 &386280259
 Transform:
   m_ObjectHideFlags: 0
@@ -908,7 +910,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 19.05
+  m_fontSize: 19.1
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1

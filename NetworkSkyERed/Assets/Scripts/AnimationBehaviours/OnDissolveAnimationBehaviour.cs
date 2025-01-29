@@ -9,8 +9,8 @@ namespace AnimationBehaviours
         public override void OnStateEnter(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
         {
             animator.SetBool(_dissolve, false);
-            var view = animator.gameObject.GetComponent<CharacterView>();
-            view.OnDissolveStart();
+            CharacterView[] view = animator.gameObject.GetComponentsInParent<CharacterView>();
+            view[0].OnDissolveStart();
         }
     }
 }

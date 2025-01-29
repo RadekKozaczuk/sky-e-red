@@ -8,5 +8,6 @@ public enum Character
 {
     Archer,
     Megan,
-    Ninja
+    Ninja,
+    Remy
 }
