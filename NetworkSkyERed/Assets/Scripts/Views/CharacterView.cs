@@ -17,7 +17,7 @@ public class CharacterView : NetworkBehaviour
                     float angle = Mathf.Atan2(value.x, value.y) * Mathf.Rad2Deg;
                     _rotation = Quaternion.Euler(0, angle, 0);
                     
-                    _animator.CrossFade(_moveState, 0.1f, 0, 0);
+                    _animator.CrossFade(_walkingState, 0.1f, 0, 0);
                 }
             }
             // was moving
@@ -48,12 +48,10 @@ public class CharacterView : NetworkBehaviour
     float _speed;
 
     // Cache hash values
-    static readonly int _idleState = Animator.StringToHash("Base Layer.idle");
-    static readonly int _moveState = Animator.StringToHash("Base Layer.move");
-    static readonly int _surprisedState = Animator.StringToHash("Base Layer.surprised");
-    static readonly int _attackState = Animator.StringToHash("Base Layer.attack_shift");
-    static readonly int _attackTag = Animator.StringToHash("Attack");
     static readonly int _dissolveTag = Animator.StringToHash("Dissolve");
+    
+    static readonly int _idleState = Animator.StringToHash("Idle");
+    static readonly int _walkingState = Animator.StringToHash("Walking");
 
     static readonly int _dissolve = Shader.PropertyToID("_Dissolve");
     const string DissolveAnimationName = "ghost_dissolve";
@@ -155,10 +153,14 @@ public class CharacterView : NetworkBehaviour
     }
 
     // play the animation of Attack
-    public void Attack() => _animator.CrossFade(_attackState, 0.1f, 0, 0);
+    public void Attack()
+    {
+        // todo: nothing for now
+        //_animator.CrossFade(_attackState, 0.1f, 0, 0);
+    }
 
     void Damage()
     {
-        _animator.CrossFade(_surprisedState, 0.1f, 0, 0);
+        //_animator.CrossFade(_surprisedState, 0.1f, 0, 0);
     }
 }
