@@ -48,13 +48,13 @@ public class CharacterView : NetworkBehaviour
     float _speed;
 
     // Cache hash values
-    static readonly int _dissolveTag = Animator.StringToHash("Dissolve");
+    static readonly int _dissolveState = Animator.StringToHash("Dissolve");
     
     static readonly int _idleState = Animator.StringToHash("Idle");
     static readonly int _walkingState = Animator.StringToHash("Walking");
 
-    static readonly int _dissolve = Shader.PropertyToID("_Dissolve");
-    const string DissolveAnimationName = "ghost_dissolve";
+    //static readonly int _dissolve = Shader.PropertyToID("_Dissolve");
+    const string DissolveAnimationName = "Jumping";
 
     // dissolve
     //[SerializeField]
@@ -143,11 +143,12 @@ public class CharacterView : NetworkBehaviour
     /// </summary>
     public void DissolveMethod()
     {
-        _animator.SetBool(_dissolveTag, true);
+        _animator.SetBool(_dissolveState, true);
     }
 
     public void OnDissolveStart()
     {
+        Debug.Log("On Dissolve start");
         _dissolveFlag = true;
         //_skinnedMeshRenderer.shadowCastingMode = ShadowCastingMode.Off;
     }

@@ -40,6 +40,7 @@ class PlayerInputController : MonoBehaviour
         _movementAction.canceled += _ =>
         {
             _movementDown = false;
+            _lastMovement = Vector2.zero;
             GameController.Singleton.Move(Vector2.zero);
         };
 
